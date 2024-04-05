@@ -12,7 +12,7 @@ extern	uint8_t usart6_buf[2][USART_RX_BUF_LENGHT];
 extern fifo_s_t referee_fifo;
 extern uint8_t referee_fifo_buf[REFEREE_FIFO_BUF_LENGTH];
 extern unpack_data_t referee_unpack_obj;
-
+extern uint8_t Info_Arr[256];
 void referee_unpack_fifo_data(void);
 
 #endif

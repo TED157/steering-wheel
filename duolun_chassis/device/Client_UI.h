@@ -171,7 +171,7 @@ void Float_Draw(Float_Data *image,char imagename[3],u32 Graph_Operate,u32 Graph_
 void Char_Draw(String_Data *image,char imagename[3],u32 Graph_Operate,u32 Graph_Layer,u32 Graph_Color,u32 Graph_Size,u32 Graph_Digit,u32 Graph_Width,u32 Start_x,u32 Start_y,char *Char_Data);
 int Char_ReFresh(String_Data string_Data);
 void Arc_Draw(Graph_Data *image,char imagename[3],u32 Graph_Operate,u32 Graph_Layer,u32 Graph_Color,u32 Graph_StartAngle,u32 Graph_EndAngle,u32 Graph_Width,u32 Start_x,u32 Start_y,u32 x_Length,u32 y_Length);
-
+int Float_ReFresh(int cnt,...);
 
 extern uint8_t UIsend_buffer[1024],top;
 extern uint8_t head[128],num,locked;

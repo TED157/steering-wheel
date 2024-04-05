@@ -20,8 +20,7 @@ extern osThreadId RefereeHandle;
   */
 void referee_unpack_fifo_data(void);
 
-uint8_t usart6_buf1[USART_RX_BUF_LENGHT] __attribute__((section(".ARM.__at_0x24000200")));
-uint8_t usart6_buf2[USART_RX_BUF_LENGHT] __attribute__((section(".ARM.__at_0x24000200")));
+uint8_t usart6_buf[2][USART_RX_BUF_LENGHT];
 uint8_t Info_Arr[256];
 uint8_t usart6_flag=1;
 
