@@ -60,7 +60,7 @@ void ShootSpeedAdopt(void);
 
 
 bool_t single_shoot_flag=0;//单发开关
-bool_t auto_fire_flag=1;//自动开火开关
+bool_t auto_fire_flag=0;//自动开火开关
 bool_t switch_flag=0;//打符切换开关
 int16_t dealta_heat=0;
 int32_t onelasttime=0;
@@ -114,9 +114,9 @@ void CalculateThread(void const * pvParameters)
         GimbalCommandUpdate();//指令的转换
         ChassisCommandUpdate();//底盘指令转换
         RotorCommandUpdate();//拨盘控制转换
-//		if(ammo_speed_ad_flag==1){
-//		//ShootSpeedAdopt();
-//			}//摩擦轮速度调整
+		if(ammo_speed_ad_flag==1){
+			ShootSpeedAdopt();
+			}//摩擦轮速度调整
         AmmoCommandUpdate();//发射部分控制转化
 		
 		if(control_counter > 10)
@@ -760,6 +760,9 @@ void GetGimbalRequestState(GimbalRequestState_t *RequestState)
 		RequestState->AimbotRequest |= (uint8_t) (1 << 0);
 		GimabalImu.mode |= (uint8_t)(1 << 1);
 	}
+	if(single_shoot_flag){
+		RequestState->AimbotRequest |= (uint8_t) (1 << 1);
+	}
 
     
     
@@ -823,6 +826,10 @@ void GetGimbalRequestState(GimbalRequestState_t *RequestState)
     }
 	
 		if(auto_fire_flag == 1){
+			RequestState->GimbalState |= (uint8_t) (1 << 6);
+		}
+		if(Gimbal.StateMachine==GM_MATCH)
+		{
 			RequestState->GimbalState |= (uint8_t) (1 << 6);
 		}
 		
@@ -899,39 +906,39 @@ void ShootSpeedAdopt(void)
 	shoot_speed_now=Referee.Ammo0Speed;
 	if(shoot_speed_last!=shoot_speed_now)
 	{
-		//如果弹速低于27.8m/s
-		if(shoot_speed_now < (shoot_limit - 2.2f) && shoot_speed_now >= (shoot_limit - 5.0f))
+		//如果弹速低于27.5m/s
+		if(shoot_speed_now < (shoot_limit - 2.5f) && shoot_speed_now >= (shoot_limit - 6.0f))
 		{
 			low_speed_time_num++;
 		}
 		/*超速判断*/ 		/*低速判断*/
-		if((shoot_limit - 1.5f <= shoot_speed_now ) ||low_speed_time_num == 3 )
+		if(((shoot_limit - 1.8f) <= shoot_speed_now ) ||low_speed_time_num == 3 )
 		{	
-			if((shoot_limit - 1.5)<shoot_speed_now)
-				{speed_high_flg = (shoot_limit - 1.5 - shoot_speed_now) * 130;}
+			if((shoot_limit - 1.8)<shoot_speed_now)
+				{speed_high_flg = (shoot_limit - 1.8 - shoot_speed_now) * 102;}
 			else if((shoot_limit - 1.5)>shoot_speed_now)
-				{speed_high_flg = (shoot_limit - 1.5 - shoot_speed_now) * 90;}
+				{speed_high_flg = (shoot_limit - 1.8 - shoot_speed_now) * 70;}
 			low_speed_time_num = 0;		
 		}
-		/*判断弹速是否在28到28.5之间*/
-		if(shoot_speed_now >= (shoot_limit - 1.4f))
+		/*判断弹速是否在27.5到28.2之间*/
+		if(shoot_speed_now >= (shoot_limit - 1.8f))
 		{
 			speed_dec_flag ++;
 		    speed_add_flag = 0;
 		}
-		if(shoot_speed_now <= (shoot_limit - 2.0f))
+		if(shoot_speed_now <= (shoot_limit - 2.5f))
 		{
 			speed_dec_flag = 0;
 			speed_add_flag++;
 		}
 		//两次采样均不在区间内
-		if(speed_dec_flag == 2)
+		if(speed_dec_flag == 3)
 		{
 			shoot_adot++;
 			speed_dec_flag = 0;
 			speed_add_flag = 0;		
 		}
-		if(speed_add_flag == 2)
+		if(speed_add_flag == 3)
 		{
 			shoot_adot--;
 			speed_dec_flag = 0;
@@ -943,8 +950,9 @@ void ShootSpeedAdopt(void)
 	if(Gimbal.StateMachine == GM_MATCH){
 	ammo_speed_l = ammo_speed_l + speed_high_flg;
 	ammo_speed_r = ammo_speed_r + speed_high_flg;
-	ammo_speed_l = ammo_speed_l - shoot_adot * 8;
-	ammo_speed_r = ammo_speed_r - shoot_adot * 8;
+	ammo_speed_l = ammo_speed_l - shoot_adot * 10;
+	ammo_speed_r = ammo_speed_r - shoot_adot * 10;
 	}
+	if(shoot_adot>2) shoot_adot=0;
 	ammo_speed_ad_flag=0;
 }

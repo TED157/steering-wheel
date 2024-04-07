@@ -11,6 +11,7 @@
 #include "Client_UI.h"
 #include "CanPacket.h"
 
+extern DMA_HandleTypeDef hdma_usart6_tx;
 extern osThreadId CanSendHandle;
 extern osThreadId RefereeHandle;
 /**
@@ -159,10 +160,12 @@ void referee_unpack_fifo_data(void)
 void USART6_IRQHandler(void)
 {
     static volatile uint8_t res;
+
     if(USART6->SR & UART_FLAG_IDLE)
     {
-        __HAL_UART_CLEAR_PEFLAG(&huart6);
-
+        __HAL_UART_CLEAR_IDLEFLAG(&huart6);
+		if(USART6->SR & UART_FLAG_TC)
+			__HAL_UART_CLEAR_FLAG(&huart6, UART_FLAG_TC);
         static uint16_t this_time_rx_len = 0;
 
         if ((huart6.hdmarx->Instance->CR & DMA_SxCR_CT) == RESET)

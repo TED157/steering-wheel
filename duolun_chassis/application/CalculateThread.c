@@ -266,8 +266,8 @@ void ChassisCommandUpdate()
 		else if (Chassis.Mode == STOP)
 		{
 			angle_minus = -YawMotorMeasure.angle + FollowAngle;
-			Chassis.vy = ((PTZ.FBSpeed / 32767.0f) * cos(angle_minus/180.0*PI) - (PTZ.LRSpeed / 32767.0f) * sin(angle_minus/180.0*PI));
-			Chassis.vx = ((PTZ.FBSpeed / 32767.0f) * sin(angle_minus/180.0*PI) + (PTZ.LRSpeed / 32767.0f) * cos(angle_minus/180.0*PI));
+			Chassis.vx = ((PTZ.FBSpeed / 32767.0f) * cos(angle_minus/180.0*PI) - (PTZ.LRSpeed / 32767.0f) * sin(angle_minus/180.0*PI));
+			Chassis.vy = ((PTZ.FBSpeed / 32767.0f) * sin(angle_minus/180.0*PI) + (PTZ.LRSpeed / 32767.0f) * cos(angle_minus/180.0*PI));
 			Chassis.wz = 0.0;
 		}
 		
@@ -424,31 +424,31 @@ void RefereeInfUpdate(ext_game_robot_status_t *referee)
 	switch(referee->chassis_power_limit)
 	{
 		case 45:
-			Power_Max = 45;kp=1.5 * 1.99999999e-06;v_gain=1;break;
+			Power_Max = 45;kp=1.23 * 1.99999999e-06;v_gain=1.8;break;
 		case 50:
-			Power_Max = 50;kp=1.5 * 1.99999999e-06;v_gain=1;break;
+			Power_Max = 50;kp=1.22 * 1.99999999e-06;v_gain=1.9;break;
 		case 55:
-			Power_Max = 55;kp=1.5 * 1.99999999e-06;v_gain=1;break;
+			Power_Max = 55;kp=1.21 * 1.99999999e-06;v_gain=2.1;break;
 		case 60:	
-			Power_Max = 60;kp=1.22 * 1.99999999e-06;v_gain=2.2;break;
+			Power_Max = 60;kp=1.17 * 1.99999999e-06;v_gain=2.3;break;
 		case 65:	
-			Power_Max = 65;kp=1.20 * 1.99999999e-06;v_gain=2.5;break;
+			Power_Max = 65;kp=1.15 * 1.99999999e-06;v_gain=2.5;break;
 		case 70:	
-			Power_Max = 70;kp=1.18 * 1.99999999e-06;v_gain=2.5;break;
+			Power_Max = 70;kp=1.13 * 1.99999999e-06;v_gain=2.5;break;
 		case 75:	
-			Power_Max = 75;kp=1.18 * 1.99999999e-06;v_gain=2.7;break;
+			Power_Max = 75;kp=1.13 * 1.99999999e-06;v_gain=2.7;break;
 		case 80:
-			Power_Max = 80;kp=1.18 * 1.99999999e-06;v_gain=3.0;break;
+			Power_Max = 80;kp=1.12 * 1.99999999e-06;v_gain=3.0;break;
 		case 85:	
-			Power_Max = 85;kp=1.18 * 1.99999999e-06;v_gain=3.0;break;
+			Power_Max = 85;kp=1.12 * 1.99999999e-06;v_gain=3.0;break;
 		case 90:	
-			Power_Max = 90;kp=1.16 * 1.99999999e-06;v_gain=2.8;break;
+			Power_Max = 90;kp=1.09 * 1.99999999e-06;v_gain=2.8;break;
 		case 95:	
-			Power_Max = 95;kp=1.16 * 1.99999999e-06;v_gain=2.8;break;
+			Power_Max = 95;kp=1.11 * 1.99999999e-06;v_gain=2.8;break;
 		case 100:	
-			Power_Max = 100;kp=1.16 * 1.99999999e-06;v_gain=2.9;break;
+			Power_Max = 100;kp=1.11 * 1.99999999e-06;v_gain=2.9;break;
 		case 120:
-			Power_Max = 120;v_gain=3.4;break;
+			Power_Max = 120;;kp=1.1 * 1.99999999e-06;v_gain=3.4;break;
 		default:
 			Power_Max = 45;v_gain=3;break;
 		

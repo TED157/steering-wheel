@@ -17,7 +17,7 @@ RM自定义UI协议       基于RM2020学生串口通信协议V1.1
 #include "Client_UI.h"
 #include "CanPacket.h"
 unsigned char UI_Seq;                      //包序号
-uint8_t UIsend_buffer[1024]  __attribute__((section(".ARM.__at_0x24000400")));
+uint8_t UIsend_buffer[1024]  ;//__attribute__((section(".ARM.__at_0x24000400")));
 uint8_t top=0;
 uint8_t head[128],num=0,locked=0;
 /****************************************串口驱动映射************************************/
@@ -422,7 +422,6 @@ int UI_ReFresh(int cnt,...)
 		datahead.Sender_ID=UI_Data_RobotID_BStandard3;
 		datahead.Receiver_ID=UI_Data_CilentID_BStandard3;                          //填充操作数据
   }
-  
 	uint8_t *p=Info_Arr;
 	uint8_t len=0;
   

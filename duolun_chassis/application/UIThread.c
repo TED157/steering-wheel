@@ -62,160 +62,297 @@ String_Data capcity;
 String_Data rune;
 Float_Data CapData;
 int mode_flag=0;
-
+uint8_t count=0,count2=0;
 extern float CapChageVoltage;
 extern EulerSystemMeasure_t    Imu;
-
+extern DMA_HandleTypeDef hdma_usart6_tx;
+ChassisMode_e mode=NOFORCE;
+uint8_t fire_mode,shoot_mode,cover_mode,aim_mode,match_mode;
+uint8_t mode_change_flag;//bit 0-7 底盘模式,自动开火，单双发，弹舱盖开合，打击对象
+void UISendTask(void const * argument)
+{
+	osDelay(1000);
+	while(1)
+	{
+		if(num>0)
+		{
+			__HAL_DMA_DISABLE(&hdma_usart6_tx);
+			while(locked)	osDelay(1);
+			locked=1;					
+			HAL_UART_Transmit_DMA(&huart6,UIsend_buffer+head[num-1],head[num]-head[num-1]);
+			num--;top=head[num];
+			locked=0;
+			osDelay(100);		
+		}
+		else
+			osDelay(1);
+	}
+}
+HAL_StatusTypeDef sta;
 
 void UI(void const * argument)
 {
-	  uint16_t flashtime=0;
-	
-	 while(1)
+	uint16_t flashtime=0;
+	num=0;top=0;
+	osDelay(1000);
+	mode=NOFORCE;
+	fire_mode=0x00;
+	shoot_mode=0x00;
+	cover_mode=0x00;
+	match_mode=0x00;
+	aim_mode=(PTZ.AimTargetRequest&0x31);
+	//固定UI图层
+	//模式切换
+	Char_Draw(&Mode,"mod",UI_Graph_ADD,0,UI_Color_Green,18,28,2,78,782,"MODE\nFIRE\nSINGLE\nCOVER\nAMMO");
+	Char_ReFresh(Mode);	
+	usart6_tx_dma_enable(UIsend_buffer+head[num-1],head[num]-head[num-1]);
+	num--;top=head[num];
+	osDelay(100);
+	//参考线
+	Line_Draw(&imagex,"xck",UI_Graph_ADD,0,UI_Color_Green,2,6900,540,7310,540);
+	Line_Draw(&imagey,"yck",UI_Graph_ADD,0,UI_Color_Green,1,7105,900,7105,100);
+	Line_Draw(&x1,"x01",UI_Graph_ADD,0,UI_Color_Cyan,1,7050,520,7160,520);
+	Line_Draw(&x6,"x06",UI_Graph_ADD,0,UI_Color_Cyan,1,7050,420,7160,420);
+	Line_Draw(&x13,"x13",UI_Graph_ADD,0,UI_Color_Pink,6,6706,40,6910,340);
+	Line_Draw(&x14,"x14",UI_Graph_ADD,0,UI_Color_Pink,6,7504,40,7300,340);
+	Float_Draw(&CapData,"cpd",UI_Graph_ADD,0,UI_Color_Yellow,20,5,2,920,158,CMS_Data.cms_cap_v*1000);
+	UI_ReFresh(7,imagex,imagey,x1,x6,x13,x14,CapData);	
+	usart6_tx_dma_enable(UIsend_buffer+head[num-1],head[num]-head[num-1]);
+	num--;top=head[num];
+	osDelay(100);
+	UI_ReFresh(1,CapData/*,imagey,x1,x6,x13,x14,CapData*/);	
+	usart6_tx_dma_enable(UIsend_buffer+head[num-1],head[num]-head[num-1]);
+	num--;top=head[num];
+	osDelay(100);
+	//默认模式	
+	Char_Draw(&noforce,"nof",UI_Graph_ADD,1,UI_Color_White,16,7,2,225,786,"noforce");
+	Char_ReFresh(noforce);
+	usart6_tx_dma_enable(UIsend_buffer+head[num-1],head[num]-head[num-1]);
+	num--;top=head[num];	
+	osDelay(100);
+	Char_Draw(&open2,"opp",UI_Graph_ADD,1,UI_Color_White,16,4,2,225,760,"manu");
+	Char_ReFresh(open2);
+	usart6_tx_dma_enable(UIsend_buffer+head[num-1],head[num]-head[num-1]);
+	num--;top=head[num];	
+	osDelay(100);
+	Char_Draw(&open3,"oop",UI_Graph_ADD,1,UI_Color_White,16,7,2,225,731,"close ");
+	Char_ReFresh(open3);
+	usart6_tx_dma_enable(UIsend_buffer+head[num-1],head[num]-head[num-1]);
+	num--;top=head[num];	
+	osDelay(100);
+	if( (PTZ.PTZStatusInformation   & 16 ) == 16)
+	{
+		Char_Draw(&open1,"op",UI_Graph_ADD,1,UI_Color_White,16,7,2,225,702,"open  ");
+		Char_ReFresh(open1);
+		usart6_tx_dma_enable(UIsend_buffer+head[num-1],head[num]-head[num-1]);
+		num--;top=head[num];	
+		osDelay(100);
+	}
+	else
+	{
+		Char_Draw(&open1,"op",UI_Graph_ADD,1,UI_Color_White,16,7,2,225,702,"close ");
+		Char_ReFresh(open1);
+		usart6_tx_dma_enable(UIsend_buffer+head[num-1],head[num]-head[num-1]);
+		num--;top=head[num];	
+		osDelay(100);		
+	}
+	Char_Draw(&rune,"run",UI_Graph_ADD,1,UI_Color_White,16,7,2,225,672,"NORMAL");
+	Char_ReFresh(rune);
+	usart6_tx_dma_enable(UIsend_buffer+head[num-1],head[num]-head[num-1]);
+	num--;top=head[num];	
+	osDelay(100);
+	while(1)
     {
-		flashtime ++;
-		if(flashtime == 1000)flashtime=0;
-		if(flashtime == 100){
-		//固定UI图层
+		if(Chassis.Mode==FALLOW&&mode==NOFORCE){
+			//模式切换
+			Char_Draw(&Mode,"mod",UI_Graph_ADD,0,UI_Color_Green,18,28,2,78,782,"MODE\nFIRE\nSINGLE\nCOVER\nAMMO");
+			Char_ReFresh(Mode);	
+			usart6_tx_dma_enable(UIsend_buffer+head[num-1],head[num]-head[num-1]);
+			num--;top=head[num];
+			osDelay(100);
+			Char_Draw(&noforce,"nof",UI_Graph_ADD,1,UI_Color_Purplish_red,16,7,2,225,786,"fallow ");
+			Char_ReFresh(noforce);
+			usart6_tx_dma_enable(UIsend_buffer+head[num-1],head[num]-head[num-1]);
+			num--;top=head[num];	
+			osDelay(100);
+			//参考线
 			Line_Draw(&imagex,"xck",UI_Graph_ADD,0,UI_Color_Green,2,6900,540,7310,540);
-		  Line_Draw(&imagey,"yck",UI_Graph_ADD,0,UI_Color_Green,1,7105,900,7105,100);
-			UI_ReFresh(2,imagex,imagey);
+			Line_Draw(&imagey,"yck",UI_Graph_ADD,0,UI_Color_Green,1,7105,900,7105,100);
 			Line_Draw(&x1,"x01",UI_Graph_ADD,0,UI_Color_Cyan,1,7050,520,7160,520);
-//			Line_Draw(&x2,"x02",UI_Graph_ADD,0,UI_Color_Cyan,1,7050,500,7160,500);
-//			Line_Draw(&x3,"x03",UI_Graph_ADD,0,UI_Color_Cyan,1,7070,480,7140,480);
-//			Line_Draw(&x4,"x04",UI_Graph_ADD,0,UI_Color_Cyan,1,7070,460,7140,460);
-//			Line_Draw(&x5,"x05",UI_Graph_ADD,0,UI_Color_Cyan,1,7085,440,7125,440);
-//				UI_ReFresh(5,x1,x2,x3,x4,x5);
-			UI_ReFresh(1,x1);
 			Line_Draw(&x6,"x06",UI_Graph_ADD,0,UI_Color_Cyan,1,7050,420,7160,420);
-//			Line_Draw(&x7,"x07",UI_Graph_ADD,0,UI_Color_Cyan,1,7050,400,7160,400);
-//			Line_Draw(&x8,"x08",UI_Graph_ADD,0,UI_Color_Cyan,1,7070,380,7140,380);
-//			Line_Draw(&x9,"x09",UI_Graph_ADD,0,UI_Color_Cyan,1,7070,360,7140,360);
-//			Line_Draw(&x10,"x10",UI_Graph_ADD,0,UI_Color_Cyan,1,7085,340,7125,340);
-//				UI_ReFresh(5,x6,x7,x8,x9,x10);
-			UI_ReFresh(1,x6);
-//			Line_Draw(&x11,"x11",UI_Graph_ADD,1,UI_Color_Pink,6,6790,140,7420,140);
-//			Line_Draw(&x12,"x12",UI_Graph_ADD,1,UI_Color_Pink,6,6900,320,7310,320);
 			Line_Draw(&x13,"x13",UI_Graph_ADD,0,UI_Color_Pink,6,6706,40,6910,340);
 			Line_Draw(&x14,"x14",UI_Graph_ADD,0,UI_Color_Pink,6,7504,40,7300,340);
-			
-//				UI_ReFresh(2,x11,x12);
-				UI_ReFresh(2,x13,x14);	
-			UI_ReFresh(1,x11);
-			
-			
-			Char_Draw(&Mode,"mod",UI_Graph_ADD,0,UI_Color_Green,14,5,2,6750,770,"MODE");
-			Char_ReFresh(Mode);
-			Char_Draw(&autofire,"fir",UI_Graph_ADD,0,UI_Color_Green,14,5,2,6750,740,"FIRE");
-			Char_ReFresh(autofire);
-			Char_Draw(&aimbot,"aim",UI_Graph_ADD,0,UI_Color_Green,14,5,2,6750,710,"SINGLE");
-			Char_ReFresh(aimbot);
-			Char_Draw(&Heat,"hea",UI_Graph_ADD,0,UI_Color_Green,14,5,2,6750,800,"cover");
-			Char_ReFresh(Heat);
-			Char_Draw(&Ammo,"amm",UI_Graph_ADD,0,UI_Color_Green,14,5,2,6750,830,"AMMO");
-			Char_ReFresh(Ammo);
-			
-
-			Char_Draw(&open1,"op",UI_Graph_ADD,1,UI_Color_Purplish_red,16,7,2,6820,800,"open");
-				Char_ReFresh(open1);
-				
-				Char_Draw(&open2,"opp",UI_Graph_ADD,1,UI_Color_Purplish_red,16,7,2,6820,740,"close ");
-				Char_ReFresh(open2);
-			Char_Draw(&noforce,"nof",UI_Graph_ADD,1,UI_Color_Purplish_red,16,7,2,6820,770,"noforce");
-				Char_ReFresh(noforce);
-				Char_Draw(&open3,"oop",UI_Graph_ADD,1,UI_Color_Purplish_red,16,7,2,6820,710,"close ");
-				Char_ReFresh(open3);
-			Char_Draw(&rune,"run",UI_Graph_ADD,1,UI_Color_Purplish_red,16,7,2,6820,830,"NORMAL");
+			Float_Draw(&CapData,"cpd",UI_Graph_ADD,0,UI_Color_Yellow,20,5,2,920,158,CMS_Data.cms_cap_v*1000);
+			UI_ReFresh(7,imagex,imagey,x1,x6,x13,x14,CapData);	
+			usart6_tx_dma_enable(UIsend_buffer+head[num-1],head[num]-head[num-1]);
+			num--;top=head[num];
+			osDelay(100);
+			UI_ReFresh(1,CapData/*,imagey,x1,x6,x13,x14,CapData*/);	
+			usart6_tx_dma_enable(UIsend_buffer+head[num-1],head[num]-head[num-1]);
+			num--;top=head[num];
+			osDelay(100);
+			//默认模式		
+			Char_Draw(&open2,"opp",UI_Graph_ADD,1,UI_Color_White,16,4,2,225,760,"manu");
+			Char_ReFresh(open2);
+			usart6_tx_dma_enable(UIsend_buffer+head[num-1],head[num]-head[num-1]);
+			num--;top=head[num];	
+			osDelay(100);
+			Char_Draw(&open3,"oop",UI_Graph_ADD,1,UI_Color_White,16,7,2,225,731,"close ");
+			Char_ReFresh(open3);
+			usart6_tx_dma_enable(UIsend_buffer+head[num-1],head[num]-head[num-1]);
+			num--;top=head[num];	
+			osDelay(100);
+			Char_Draw(&open1,"op",UI_Graph_ADD,1,UI_Color_White,16,7,2,225,702,"close ");
+			Char_ReFresh(open1);
+			usart6_tx_dma_enable(UIsend_buffer+head[num-1],head[num]-head[num-1]);
+			num--;top=head[num];	
+			osDelay(100);		
+			Char_Draw(&rune,"run",UI_Graph_ADD,1,UI_Color_White,16,7,2,225,672,"NORMAL");
 			Char_ReFresh(rune);
+			usart6_tx_dma_enable(UIsend_buffer+head[num-1],head[num]-head[num-1]);
+			num--;top=head[num];	
+			osDelay(100);
+			mode=NOFORCE;
+			fire_mode=0x00;
+			shoot_mode=0x00;
+			cover_mode=0x00;
+			aim_mode=0x00;
+			match_mode=0x00;
 		}
-			else if(flashtime% 100 == 0){
-			//************************************弹舱盖**********************************	
-			if( (PTZ.PTZStatusInformation   & 16 ) == 16)
+
+		Float_Draw(&CapData,"cpd",UI_Graph_Change,0,UI_Color_Yellow,20,5,2,920,158,CMS_Data.cms_cap_v*1000);
+		if(count2==0)
+		{			
+			UI_ReFresh(1,CapData);
+		}
+		mode_change_flag=0x00;
+		//模式切换检测
+		//底盘模式切换
+		if(Chassis.Mode != mode){
+			mode_change_flag |= (uint8_t) (1 << 0);
+		}
+		//开火模式转换
+		if(fire_mode!=(PTZ.PTZStatusInformation&64)){
+			mode_change_flag |= (uint8_t) (1<<1);
+		}
+		//单双发模式切换
+		if(shoot_mode!=(PTZ.AimTargetRequest&0x02)){
+			mode_change_flag |= (uint8_t) (1<<2);
+		}
+		//弹舱盖开合
+		if(cover_mode!=(PTZ.PTZStatusInformation&16)){
+			mode_change_flag |= (uint8_t) (1<<3);
+		}
+		//打击对象切换
+		if(aim_mode!=(PTZ.AimTargetRequest&0x31)){
+			mode_change_flag |= (uint8_t) (1<<4);
+		}
+		//比赛模式切换
+		if(match_mode!=(PTZ.PTZStatusInformation&0x40))
+		{
+			mode_change_flag |= (uint8_t) (1<<5);
+		}
+		mode=Chassis.Mode;
+		fire_mode=(PTZ.PTZStatusInformation&64);
+		shoot_mode=(PTZ.AimTargetRequest&0x02);
+		cover_mode=(PTZ.PTZStatusInformation&16);
+		aim_mode=(PTZ.AimTargetRequest&0x31);																																																					
+		//************************************底盘模式**********************************
+		if(mode_change_flag&0x01){
+			if(Chassis.Mode == NOFORCE)
 			{
-				Char_Draw(&open1,"op",UI_Graph_Change,1,UI_Color_Purplish_red,16,7,2,6820,800,"open  ");
-				Char_ReFresh(open1);
+				Char_Draw(&noforce,"nof",UI_Graph_Change,1,UI_Color_White,16,7,2,225,786,"noforce");
+				Char_ReFresh(noforce);
 			}
-			else
+			else if(Chassis.Mode == ROTING)
 			{
-				Char_Draw(&open1,"op",UI_Graph_Change,1,UI_Color_Purplish_red,16,7,2,6820,800,"close ");
-				Char_ReFresh(open1);
-				
+				Char_Draw(&noforce,"nof",UI_Graph_Change,1,UI_Color_Green,16,7,2,225,786,"rotate ");
+				Char_ReFresh(noforce);
 			}
-			//************************************自动开火********************************
+			else if(Chassis.Mode == FALLOW)
+			{ 
+				Char_Draw(&noforce,"nof",UI_Graph_Change,1,UI_Color_Orange,16,7,2,225,786,"fallow ");
+				Char_ReFresh(noforce);
+			}
+			else if(Chassis.Mode == STOP)
+			{
+				Char_Draw(&noforce,"nof",UI_Graph_Change,1,UI_Color_Orange,16,7,2,225,786,"stop   ");
+				Char_ReFresh(noforce);
+			}
+		}
+		//************************************自动开火********************************
+		if(mode_change_flag&0x02){
 			if(  (PTZ.PTZStatusInformation     &  64) == 64)
 			{
-				Char_Draw(&open2,"opp",UI_Graph_Change,1,UI_Color_Purplish_red,16,7,2,6820,740,"open  ");
+				Char_Draw(&open2,"opp",UI_Graph_Change,1,UI_Color_Purplish_red,16,4,2,225,760,"auto");
 				Char_ReFresh(open2);
 			}
 			else
 			{
-				Char_Draw(&open2,"opp",UI_Graph_Change,1,UI_Color_Purplish_red,16,7,2,6820,740,"close ");
-				Char_ReFresh(open2);
-			
+				Char_Draw(&open2,"opp",UI_Graph_Change,1,UI_Color_White,16,4,2,225,760,"manu");
+				Char_ReFresh(open2);	
 			}	
-			//*********************************单发*********************************
-				if(   (PTZ.AimTargetRequest & 0x02) == 0x02){
-					Char_Draw(&open3,"oop",UI_Graph_Change,1,UI_Color_Purplish_red,16,7,2,6820,710,"open  ");
-					Char_ReFresh(open3);
+		}
+		//*********************************单发*********************************
+		if(mode_change_flag&0x04){
+			if(   (PTZ.AimTargetRequest & 0x02) == 0x02){
+				Char_Draw(&open3,"oop",UI_Graph_Change,1,UI_Color_Purplish_red,16,7,2,225,731,"open  ");
+				Char_ReFresh(open3);
 			}
 			else
 			{
-					Char_Draw(&open3,"oop",UI_Graph_Change,1,UI_Color_Purplish_red,16,7,2,6820,710,"close ");
-					Char_ReFresh(open3);
-				
-				}
-			
-				/************************rune*******************************/
-				if(PTZ.AimTargetRequest & 0x20)
-				{
-					Char_Draw(&rune,"run",UI_Graph_Change,1,UI_Color_Purplish_red,16,7,2,6820,830,"BIG");
-					Char_ReFresh(rune);
-				}
-				else if(PTZ.AimTargetRequest & 0x10)
-				{
-					Char_Draw(&rune,"run",UI_Graph_Change,1,UI_Color_Purplish_red,16,7,2,6820,830,"SMALL");
-					Char_ReFresh(rune);
-				}
-				else 
-				{
-					Char_Draw(&rune,"run",UI_Graph_Change,1,UI_Color_Purplish_red,16,7,2,6820,830,"NORMAL");
-					Char_ReFresh(rune);
-				
-				}
-				
-				
-				if(Chassis.Mode == NOFORCE)
-				{
-
-					Char_Draw(&noforce,"nof",UI_Graph_Change,1,UI_Color_Purplish_red,16,7,2,6820,770,"noforce");
-					Char_ReFresh(noforce);
-				}
-				else if(Chassis.Mode == ROTING)
-				{
-
-					Char_Draw(&noforce,"nof",UI_Graph_Change,1,UI_Color_Green,16,7,2,6820,770,"rotate");
-					Char_ReFresh(noforce);
-				}
-				else if(Chassis.Mode == FALLOW)
-				{
-				 
-					Char_Draw(&noforce,"nof",UI_Graph_Change,1,UI_Color_Cyan,16,7,2,6820,770,"fallow");
-					Char_ReFresh(noforce);
-				}
-				else if(Chassis.Mode == STOP)
-				{
-					Char_Draw(&noforce,"nof",UI_Graph_Change,1,UI_Color_Cyan,16,7,2,6820,770,"stop");
-					Char_ReFresh(noforce);
-				}
-				else if(CMS_Data.Mode == 1)
-				{
-					Char_Draw(&noforce,"nof",UI_Graph_Change,1,UI_Color_Cyan,16,7,2,6820,770,"Fly");
-					Char_ReFresh(noforce);
-				
-				}
-
+				Char_Draw(&open3,"oop",UI_Graph_Change,1,UI_Color_White,16,7,2,225,731,"close ");
+				Char_ReFresh(open3);	
+			}	
+		}
+		//************************************弹舱盖**********************************	
+		if(mode_change_flag&0x08){
+			if( (PTZ.PTZStatusInformation   & 16 ) == 16)
+			{
+				Char_Draw(&open1,"op",UI_Graph_Change,1,UI_Color_Purplish_red,16,7,2,225,702,"open  ");
+				Char_ReFresh(open1);
 			}
-			
+			else
+			{
+				Char_Draw(&open1,"op",UI_Graph_Change,1,UI_Color_White,16,7,2,225,702,"close ");
+				Char_ReFresh(open1);		
+			}
+		} 
+		/************************rune*******************************/
+		if(mode_change_flag&0x10){
+			if(PTZ.AimTargetRequest & 0x20)
+			{
+				Char_Draw(&rune,"run",UI_Graph_Change,1,UI_Color_Pink,16,7,2,225,672,"BIG    ");
+				Char_ReFresh(rune);
+			}
+			else if(PTZ.AimTargetRequest & 0x10)
+			{
+				Char_Draw(&rune,"run",UI_Graph_Change,1,UI_Color_Cyan,16,7,2,225,672,"SMALL  ");
+				Char_ReFresh(rune);
+			}
+			else 
+			{
+				Char_Draw(&rune,"run",UI_Graph_Change,1,UI_Color_White,16,7,2,225,672,"NORMAL");
+				Char_ReFresh(rune);	
+			}
+		}
+//		if(!(mode_change_flag&0x20)){
+//			Char_Draw(&noforce,"nof",UI_Graph_Change,1,UI_Color_White,16,7,2,225,786,"fallow!");
+//				Char_ReFresh(noforce);
+//		}
+		if(count==0){
+			if(num>0)
+			{
+				while(locked)	osDelay(1);
+				locked=1;					
+				usart6_tx_dma_enable(UIsend_buffer+head[num-1],head[num]-head[num-1]);
+				num--;top=head[num];
+				locked=0;		
+			}
+		}
+		count++;
+		if(count==100) count=0;
+		count2=(count2+1)%200;
         osDelay(1);
     }
 

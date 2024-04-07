@@ -60,7 +60,7 @@ osThreadId AttudThreadHandler;
 osThreadId RefereeHandle;
 osThreadId CanSendHandle;
 osThreadId GUIHandle;
-
+osThreadId GUISendHandle;
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void const * argument);
@@ -116,22 +116,25 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
-  osThreadDef(Attitude, AttitudeThread, osPriorityRealtime, 0, 512);
-  AttudThreadHandler = osThreadCreate(osThread(Attitude), NULL);
+//  osThreadDef(Attitude, AttitudeThread, osPriorityRealtime, 0, 512);
+//  AttudThreadHandler = osThreadCreate(osThread(Attitude), NULL);
 
   /* definition and creation of Calculate */
-  osThreadDef(Calculate, CalculateThread, osPriorityHigh, 0, 1024);
+  osThreadDef(Calculate, CalculateThread, osPriorityHigh, 0, 512);
   CalcThreadHandler = osThreadCreate(osThread(Calculate), NULL);
   
    osThreadDef(CanSend, CanSendTask, osPriorityHigh, 0, 512);
   CanSendHandle = osThreadCreate(osThread(CanSend), NULL); 
   
-   osThreadDef(GUI, UI, osPriorityNormal, 0, 512);
+   osThreadDef(GUI, UI, osPriorityNormal, 0, 2048);
   GUIHandle = osThreadCreate(osThread(GUI), NULL);  
   
   osThreadDef(Referee, RefereeTask, osPriorityNormal, 0, 512);
   RefereeHandle = osThreadCreate(osThread(Referee), NULL);
-    
+  
+//  osThreadDef(GUISend, UISendTask, osPriorityNormal, 0, 1024);
+//  defaultTaskHandle = osThreadCreate(osThread(GUISend), NULL);
+//    
 
 
 

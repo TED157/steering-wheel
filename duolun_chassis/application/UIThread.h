@@ -5,4 +5,5 @@
 
 
 void UI(void const * argument);
+void UISendTask(void const * argument);
 #endif

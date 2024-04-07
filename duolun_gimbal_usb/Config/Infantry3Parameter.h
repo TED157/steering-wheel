@@ -26,17 +26,17 @@
 #define AMMO_SPEEDSET_18MS                      5150
 #define AMMO_SPEEDSET_22MS                      6200
 #define AMMO_SPEEDSET_30MS                      7300//8800
-#define AMMO_SPEEDSET_30MS_L                    7240//7400//7800
-#define AMMO_SPEEDSET_30MS_R                    7210
+#define AMMO_SPEEDSET_30MS_L                    7430//7400//7800
+#define AMMO_SPEEDSET_30MS_R                    7400
 
-#define ROTOR_SPEEDSET_FORWARD                  4570.0f//5000.0f//5000
+#define ROTOR_SPEEDSET_FORWARD                  4510.0f//5000.0f//5000
 #define ROTOR_SPEEDSET_FORWARD_FAST             7000.0f
 #define ROTOR_SPEEDSET_BACKWARD                 -2000.0f
 #define ROTOR_SPEEDSET_FORWARD_RUNE             4650.0f//5000.0f//5000
 
 #define HIGH_FREQ_COOLING_COEFFICIENT			360//440
 #define LOW_FREQ_COOLING_COEFFICIENT			200//440
-#define ROTOR_TIMESET_BUSY                      60//50
+#define ROTOR_TIMESET_BUSY                      68//50
 #define ROTOR_TIMESET_BUSY_FAST                 1
 #define ROTOR_TIMESET_COOLING                   0
 #define ROTOR_TIMESET_RESERVE                   80 //80 30
@@ -167,35 +167,35 @@ fp32 PITCH_ANGLE_AIMBOT_OPERATE[3] = { PITCH_ANGLE_AIMBOT_OPERATE_KP, PITCH_ANGL
 //  YAW轴角速度环
 #define YAW_SPEED_AIMBOT_RUNES_KP               360.0f
 #define YAW_SPEED_AIMBOT_RUNES_KI               0.009f//0.1f
-#define YAW_SPEED_AIMBOT_RUNES_KD               102.0f
+#define YAW_SPEED_AIMBOT_RUNES_KD               0.0f
 fp32 YAW_SPEED_AIMBOT_RUNES[3] = { YAW_SPEED_AIMBOT_RUNES_KP, YAW_SPEED_AIMBOT_RUNES_KI, YAW_SPEED_AIMBOT_RUNES_KD };
 //  YAW轴角度环
-#define YAW_ANGLE_AIMBOT_RUNES_KP               25.0f//24.0f//36.0f
+#define YAW_ANGLE_AIMBOT_RUNES_KP               16.5f//24.0f//36.0f
 #define YAW_ANGLE_AIMBOT_RUNES_KI               0.02f//0.0f// 0.015f
-#define YAW_ANGLE_AIMBOT_RUNES_KD               36.0f//2.0f//25.0f
+#define YAW_ANGLE_AIMBOT_RUNES_KD               98.0f//2.0f//25.0f
 fp32 YAW_ANGLE_AIMBOT_RUNES[3] = { YAW_ANGLE_AIMBOT_RUNES_KP, YAW_ANGLE_AIMBOT_RUNES_KI, YAW_ANGLE_AIMBOT_RUNES_KD };
 //  PITCH轴角速度环
-#define PITCH_SPEED_AIMBOT_RUNES_KP             200.0f
+#define PITCH_SPEED_AIMBOT_RUNES_KP             170.0f
 #define PITCH_SPEED_AIMBOT_RUNES_KI             0.01f
-#define PITCH_SPEED_AIMBOT_RUNES_KD             85.5f
+#define PITCH_SPEED_AIMBOT_RUNES_KD             55.5f
 fp32 PITCH_SPEED_AIMBOT_RUNES[3] = { PITCH_SPEED_AIMBOT_RUNES_KP, PITCH_SPEED_AIMBOT_RUNES_KI, PITCH_SPEED_AIMBOT_RUNES_KD };
 //  PITCH轴角度环
-#define PITCH_ANGLE_AIMBOT_RUNES_KP             18.0f
+#define PITCH_ANGLE_AIMBOT_RUNES_KP             13.0f
 #define PITCH_ANGLE_AIMBOT_RUNES_KI             0.02f
-#define PITCH_ANGLE_AIMBOT_RUNES_KD             30.5f
+#define PITCH_ANGLE_AIMBOT_RUNES_KD             160.5f
 fp32 PITCH_ANGLE_AIMBOT_RUNES[3] = { PITCH_ANGLE_AIMBOT_RUNES_KP, PITCH_ANGLE_AIMBOT_RUNES_KI, PITCH_ANGLE_AIMBOT_RUNES_KD };
 
 
 //  摩擦轮参数
 
-#define AMMO_LEFT_SPEED_30MS_KP                 2.6f
+#define AMMO_LEFT_SPEED_30MS_KP                 42.0f
 #define AMMO_LEFT_SPEED_30MS_KI                 0.0f
-#define AMMO_LEFT_SPEED_30MS_KD                 7.0f
+#define AMMO_LEFT_SPEED_30MS_KD                 12.0f
 fp32 AMMO_LEFT_SPEED_30MS[3] = { AMMO_LEFT_SPEED_30MS_KP, AMMO_LEFT_SPEED_30MS_KI, AMMO_LEFT_SPEED_30MS_KD };
 
-#define AMMO_RIGHT_SPEED_30MS_KP                2.6f
+#define AMMO_RIGHT_SPEED_30MS_KP                41.0f
 #define AMMO_RIGHT_SPEED_30MS_KI                0.0f
-#define AMMO_RIGHT_SPEED_30MS_KD                7.0f
+#define AMMO_RIGHT_SPEED_30MS_KD                12.0f
 fp32 AMMO_RIGHT_SPEED_30MS[3] = { AMMO_RIGHT_SPEED_30MS_KP, AMMO_RIGHT_SPEED_30MS_KI, AMMO_RIGHT_SPEED_30MS_KD };
 
 
