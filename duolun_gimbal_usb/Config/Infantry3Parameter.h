@@ -26,21 +26,21 @@
 #define AMMO_SPEEDSET_18MS                      5150
 #define AMMO_SPEEDSET_22MS                      6200
 #define AMMO_SPEEDSET_30MS                      7300//8800
-#define AMMO_SPEEDSET_30MS_L                    7430//7400//7800
-#define AMMO_SPEEDSET_30MS_R                    7400
+#define AMMO_SPEEDSET_30MS_L                    7300//7400//7800
+#define AMMO_SPEEDSET_30MS_R                    7300
 
-#define ROTOR_SPEEDSET_FORWARD                  4510.0f//5000.0f//5000
+#define ROTOR_SPEEDSET_FORWARD                  2500.0f//5000.0f//5000
 #define ROTOR_SPEEDSET_FORWARD_FAST             7000.0f
 #define ROTOR_SPEEDSET_BACKWARD                 -2000.0f
 #define ROTOR_SPEEDSET_FORWARD_RUNE             4650.0f//5000.0f//5000
 
 #define HIGH_FREQ_COOLING_COEFFICIENT			360//440
 #define LOW_FREQ_COOLING_COEFFICIENT			200//440
-#define ROTOR_TIMESET_BUSY                      68//50
+#define ROTOR_TIMESET_BUSY                      52//50
 #define ROTOR_TIMESET_BUSY_FAST                 1
 #define ROTOR_TIMESET_COOLING                   0
 #define ROTOR_TIMESET_RESERVE                   80 //80 30
-#define ROTOR_LAGGING_COUNTER_MAX               30//28
+#define ROTOR_LAGGING_COUNTER_MAX               50//28
 #define ROTOR_TIMESET_COOLING_SECOND            0
 
 #define ROTOR_TIMESET_COOLING_MAXEXTRA          60
@@ -52,14 +52,14 @@
 #define ROTOR_UNABLE_KD                         0.0f
 fp32 ROTOR_UNABLE[3] = { ROTOR_UNABLE_KP, ROTOR_UNABLE_KI, ROTOR_UNABLE_KD };
 
-#define ROTOR_FORWARD_KP                       	150.0f//150f
+#define ROTOR_FORWARD_KP                       	36.0f//150f
 #define ROTOR_FORWARD_KI                        0.0f
-#define ROTOR_FORWARD_KD                        0.0f
+#define ROTOR_FORWARD_KD                        18.0f
 fp32 ROTOR_FORWARD[3] = { ROTOR_FORWARD_KP, ROTOR_FORWARD_KI, ROTOR_FORWARD_KD };
 
-#define ROTOR_STOP_KP                           20.0f//30.0f
+#define ROTOR_STOP_KP                           10.0f//30.0f
 #define ROTOR_STOP_KI                           0.0f
-#define ROTOR_STOP_KD                           0.0f
+#define ROTOR_STOP_KD                           3.0f
 fp32 ROTOR_STOP[3] = { ROTOR_STOP_KP, ROTOR_STOP_KI, ROTOR_STOP_KD };
 
 #define ROTOR_BACK_KP                           100.0f
@@ -128,9 +128,9 @@ fp32 YAW_SPEED_MANUAL_OPERATE[3] = { YAW_SPEED_MANUAL_OPERATE_KP, YAW_SPEED_MANU
 #define YAW_ANGLE_MANUAL_OPERATE_KD             102.0f//22.0f
 fp32 YAW_ANGLE_MANUAL_OPERATE[3] = { YAW_ANGLE_MANUAL_OPERATE_KP, YAW_ANGLE_MANUAL_OPERATE_KI, YAW_ANGLE_MANUAL_OPERATE_KD };
 //  PITCH轴角速度环
-#define PITCH_SPEED_MANUAL_OPERATE_KP           200.0f//180.0f
-#define PITCH_SPEED_MANUAL_OPERATE_KI           0.3f
-#define PITCH_SPEED_MANUAL_OPERATE_KD           30.0f//58
+#define PITCH_SPEED_MANUAL_OPERATE_KP           240.0f//180.0f
+#define PITCH_SPEED_MANUAL_OPERATE_KI           0.03f
+#define PITCH_SPEED_MANUAL_OPERATE_KD           90.0f//58
 fp32 PITCH_SPEED_MANUAL_OPERATE[3] = { PITCH_SPEED_MANUAL_OPERATE_KP, PITCH_SPEED_MANUAL_OPERATE_KI, PITCH_SPEED_MANUAL_OPERATE_KD };
 //  PITCH轴角度环
 #define PITCH_ANGLE_MANUAL_OPERATE_KP           26.0f//26.0f//57.0f
@@ -142,14 +142,14 @@ fp32 PITCH_ANGLE_MANUAL_OPERATE[3] = { PITCH_ANGLE_MANUAL_OPERATE_KP, PITCH_ANGL
 
 //  自瞄控制云台参数
 //  YAW轴角速度环
-#define YAW_SPEED_AIMBOT_OPERATE_KP             350.0f//360
+#define YAW_SPEED_AIMBOT_OPERATE_KP             340.0f//360
 #define YAW_SPEED_AIMBOT_OPERATE_KI             0.00f//0.1f
 #define YAW_SPEED_AIMBOT_OPERATE_KD             0.0f
 fp32 YAW_SPEED_AIMBOT_OPERATE[3] = { YAW_SPEED_AIMBOT_OPERATE_KP, YAW_SPEED_AIMBOT_OPERATE_KI, YAW_SPEED_AIMBOT_OPERATE_KD };
 //  YAW轴角度环
-#define YAW_ANGLE_AIMBOT_OPERATE_KP             18.5f//25.0f//36.0f
+#define YAW_ANGLE_AIMBOT_OPERATE_KP             17.0f//25.0f//36.0f
 #define YAW_ANGLE_AIMBOT_OPERATE_KI             0.00f//0.0f// 0.015f
-#define YAW_ANGLE_AIMBOT_OPERATE_KD             105.0f//2.0f//25.0f
+#define YAW_ANGLE_AIMBOT_OPERATE_KD             257.0f//2.0f//25.0f
 fp32 YAW_ANGLE_AIMBOT_OPERATE[3] = { YAW_ANGLE_AIMBOT_OPERATE_KP, YAW_ANGLE_AIMBOT_OPERATE_KI, YAW_ANGLE_AIMBOT_OPERATE_KD };
 //  PITCH轴角速度环
 #define PITCH_SPEED_AIMBOT_OPERATE_KP           170.0f
@@ -188,14 +188,14 @@ fp32 PITCH_ANGLE_AIMBOT_RUNES[3] = { PITCH_ANGLE_AIMBOT_RUNES_KP, PITCH_ANGLE_AI
 
 //  摩擦轮参数
 
-#define AMMO_LEFT_SPEED_30MS_KP                 42.0f
+#define AMMO_LEFT_SPEED_30MS_KP                 15.0f
 #define AMMO_LEFT_SPEED_30MS_KI                 0.0f
-#define AMMO_LEFT_SPEED_30MS_KD                 12.0f
+#define AMMO_LEFT_SPEED_30MS_KD                 1.0f
 fp32 AMMO_LEFT_SPEED_30MS[3] = { AMMO_LEFT_SPEED_30MS_KP, AMMO_LEFT_SPEED_30MS_KI, AMMO_LEFT_SPEED_30MS_KD };
 
-#define AMMO_RIGHT_SPEED_30MS_KP                41.0f
+#define AMMO_RIGHT_SPEED_30MS_KP                12.0f
 #define AMMO_RIGHT_SPEED_30MS_KI                0.0f
-#define AMMO_RIGHT_SPEED_30MS_KD                12.0f
+#define AMMO_RIGHT_SPEED_30MS_KD                6.0f
 fp32 AMMO_RIGHT_SPEED_30MS[3] = { AMMO_RIGHT_SPEED_30MS_KP, AMMO_RIGHT_SPEED_30MS_KI, AMMO_RIGHT_SPEED_30MS_KD };
 
 

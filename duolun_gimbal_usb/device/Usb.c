@@ -44,7 +44,6 @@ void UsbReceive(uint8_t *rx_data, uint8_t len)
 			memcpy(&Aimbot_s, rx_data, len);
 			Aimbot_s.YawRelativeAngle = Aimbot_s.Yaw ;
 			Aimbot_s.PitchRelativeAngle = Aimbot_s.Pitch ;
-			UART_printf("%d\n",Aimbot_s.SystemTimer);
 			break;
 		default:
 			break;

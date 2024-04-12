@@ -29,7 +29,7 @@ float WheelAngle[4];
 
 fp32 wz;
 fp32 roting_speed;
-fp32 Angle_zero_6020[4] = {-73.3, -68.8, -124.8, 29.2};
+fp32 Angle_zero_6020[4] = {-72.1, -61.5, -127.1, 30.4};
 //fp32 Angle_zero_6020[4] = {0, 0, 0, 0};
 fp32 Direction[5] = {-1.0, -1.0, 1.0, 1.0, -1.0};
 fp32 Maxspeed = 6000.0f;
@@ -258,10 +258,10 @@ void ChassisCommandUpdate()
 		}
 		else if (Chassis.Mode == ROTING)
 		{
-			angle_minus = -YawMotorMeasure.angle + FollowAngle - YawMotorMeasure.speed_rpm * 0.27;
-			Chassis.wz = sin(v_gain/4.2)*4;
-			Chassis.vx = ((PTZ.FBSpeed / 32767.0f) * cos(angle_minus/180.0*PI) - (PTZ.LRSpeed / 32767.0f) * sin(angle_minus/180.0*PI));//* (1.0f + Chassis.Power_Proportion /Power_Max );
-			Chassis.vy = ((PTZ.FBSpeed / 32767.0f) * sin(angle_minus/180.0*PI) + (PTZ.LRSpeed / 32767.0f) * cos(angle_minus/180.0*PI));//* (1.0f + Chassis.Power_Proportion /Power_Max );
+			angle_minus = -YawMotorMeasure.angle + FollowAngle - YawMotorMeasure.speed_rpm * 0.64;
+			Chassis.wz = sin(v_gain/4.2)*3.5;
+			Chassis.vx = ((PTZ.FBSpeed / 32767.0f) * cos(angle_minus/180.0*PI) - (PTZ.LRSpeed / 32767.0f) * sin(angle_minus/180.0*PI))*v_gain/2;//* (1.0f + Chassis.Power_Proportion /Power_Max );
+			Chassis.vy = ((PTZ.FBSpeed / 32767.0f) * sin(angle_minus/180.0*PI) + (PTZ.LRSpeed / 32767.0f) * cos(angle_minus/180.0*PI))*v_gain/2;//* (1.0f + Chassis.Power_Proportion /Power_Max );
 		}
 		else if (Chassis.Mode == STOP)
 		{
@@ -424,11 +424,11 @@ void RefereeInfUpdate(ext_game_robot_status_t *referee)
 	switch(referee->chassis_power_limit)
 	{
 		case 45:
-			Power_Max = 45;kp=1.23 * 1.99999999e-06;v_gain=1.8;break;
+			Power_Max = 45;kp=1.30 * 1.99999999e-06;v_gain=1.8;break;
 		case 50:
-			Power_Max = 50;kp=1.22 * 1.99999999e-06;v_gain=1.9;break;
+			Power_Max = 50;kp=1.28 * 1.99999999e-06;v_gain=1.9;break;
 		case 55:
-			Power_Max = 55;kp=1.21 * 1.99999999e-06;v_gain=2.1;break;
+			Power_Max = 55;kp=1.24 * 1.99999999e-06;v_gain=2.1;break;
 		case 60:	
 			Power_Max = 60;kp=1.17 * 1.99999999e-06;v_gain=2.3;break;
 		case 65:	
@@ -496,19 +496,26 @@ uint8_t chassis_powerloop(Chassis_t *Chassis)
 	// 计算CMS充电功率
 
 	// 数学模型预测功率（不使用CMS功率计的功率计算）
-	he = fabs(2 * Chassis->Motor3508[0].speed_rpm - last_speed[0]) * fabs((float)Chassis->Current[4]) * kp +
-		 fabs(2 * Chassis->Motor3508[1].speed_rpm - last_speed[1]) * fabs((float)Chassis->Current[5]) * kp +
-		 fabs(2 * Chassis->Motor3508[2].speed_rpm - last_speed[2]) * fabs((float)Chassis->Current[6]) * kp +
-		 fabs(2 * Chassis->Motor3508[3].speed_rpm - last_speed[3]) * fabs((float)Chassis->Current[7]) * kp+
-		 fabs(2 * Chassis->Motor6020[0].speed_rpm - last_speed[4]) * fabs((float)Chassis->Current[0]) * kp+
-		 fabs(2 * Chassis->Motor6020[1].speed_rpm - last_speed[5]) * fabs((float)Chassis->Current[1]) * kp+
-		 fabs(2 * Chassis->Motor6020[2].speed_rpm - last_speed[6]) * fabs((float)Chassis->Current[2]) * kp+
-		 fabs(2 * Chassis->Motor6020[3].speed_rpm - last_speed[7]) * fabs((float)Chassis->Current[3]) * kp;
-
-	last_speed[0] = Chassis->Motor3508[0].speed_rpm;
-	last_speed[1] = Chassis->Motor3508[0].speed_rpm;
-	last_speed[2] = Chassis->Motor3508[0].speed_rpm;
-	last_speed[3] = Chassis->Motor3508[0].speed_rpm;
+//	he = fabs(2 * Chassis->Motor3508[0].speed_rpm - last_speed[0]) * fabs((float)Chassis->Current[4]) * kp +
+//		 fabs(2 * Chassis->Motor3508[1].speed_rpm - last_speed[1]) * fabs((float)Chassis->Current[5]) * kp +
+//		 fabs(2 * Chassis->Motor3508[2].speed_rpm - last_speed[2]) * fabs((float)Chassis->Current[6]) * kp +
+//		 fabs(2 * Chassis->Motor3508[3].speed_rpm - last_speed[3]) * fabs((float)Chassis->Current[7]) * kp+
+//		 fabs(2 * Chassis->Motor6020[0].speed_rpm - last_speed[4]) * fabs((float)Chassis->Current[0]) * kp+
+//		 fabs(2 * Chassis->Motor6020[1].speed_rpm - last_speed[5]) * fabs((float)Chassis->Current[1]) * kp+
+//		 fabs(2 * Chassis->Motor6020[2].speed_rpm - last_speed[6]) * fabs((float)Chassis->Current[2]) * kp+
+//		 fabs(2 * Chassis->Motor6020[3].speed_rpm - last_speed[7]) * fabs((float)Chassis->Current[3]) * kp;
+	he = fabs((float) Chassis->Motor3508[0].speed_rpm) * fabs((float)Chassis->Current[4]) * kp +
+		 fabs((float) Chassis->Motor3508[1].speed_rpm) * fabs((float)Chassis->Current[5]) * kp +
+		 fabs((float) Chassis->Motor3508[2].speed_rpm) * fabs((float)Chassis->Current[6]) * kp +
+		 fabs((float) Chassis->Motor3508[3].speed_rpm) * fabs((float)Chassis->Current[7]) * kp+
+		 fabs((float) Chassis->Motor6020[0].speed_rpm) * fabs((float)Chassis->Current[0]) * kp+
+		 fabs((float) Chassis->Motor6020[1].speed_rpm) * fabs((float)Chassis->Current[1]) * kp+
+		 fabs((float) Chassis->Motor6020[2].speed_rpm) * fabs((float)Chassis->Current[2]) * kp+
+		 fabs((float) Chassis->Motor6020[3].speed_rpm) * fabs((float)Chassis->Current[3]) * kp;
+//	last_speed[0] = Chassis->Motor3508[0].speed_rpm;
+//	last_speed[1] = Chassis->Motor3508[0].speed_rpm;
+//	last_speed[2] = Chassis->Motor3508[0].speed_rpm;
+//	last_speed[3] = Chassis->Motor3508[0].speed_rpm;
 
 	lijupower = he + START_POWER;
 

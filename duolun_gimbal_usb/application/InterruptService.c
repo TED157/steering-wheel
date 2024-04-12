@@ -128,7 +128,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
         {
             RefereeAmmoSpeedNode0OfflineCounterUpdate();
             RefereeAmmoSpeedNode0InformationUpdate(rx_data);
-			UART_printf("%f\r\n",Referee.Ammo0Speed);
+			//UART_printf("%f\r\n",Referee.Ammo0Speed);
 			ammo_speed_ad_flag=1;
             break;
         }
@@ -348,6 +348,7 @@ void TimerTaskLoop500Hz(void)
 void TimerTaskLoop100Hz(void)
 {
     //GimbalImuPacketSend();
+	//UART_printf("%f,%f\n",Gimbal.MotorMeasure.ShootMotor.AmmoLeftMotorSpeed,Gimbal.MotorMeasure.ShootMotor.AmmoRightMotorSpeed);
 }
 
 void TimerTaskLoop100Hz_1(void)

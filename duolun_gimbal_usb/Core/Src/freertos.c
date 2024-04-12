@@ -116,16 +116,16 @@ void MX_FREERTOS_Init(void) {
   /* add threads, ... */
   
   /* definition and creation of Attitude */
-  osThreadDef(Attitude, AttitudeThread, osPriorityRealtime, 0, 1024);
+  osThreadDef(Attitude, AttitudeThread, osPriorityRealtime, 0, 1536);
   AttudThreadHandler = osThreadCreate(osThread(Attitude), NULL);
 
   /* definition and creation of Calculate */
-  osThreadDef(Calculate, CalculateThread, osPriorityHigh, 0, 1024);
+  osThreadDef(Calculate, CalculateThread, osPriorityHigh, 0, 1536);
   CalcThreadHandler = osThreadCreate(osThread(Calculate), NULL);
   
   /* definition and creation of Debug */
-  osThreadDef(Debug, DebugThread, osPriorityNormal, 0, 512);
-  DebugThreadHandle = osThreadCreate(osThread(Debug), NULL);
+  //osThreadDef(Debug, DebugThread, osPriorityNormal, 0, 512);
+  //DebugThreadHandle = osThreadCreate(osThread(Debug), NULL);
   
   /* USER CODE END RTOS_THREADS */
 

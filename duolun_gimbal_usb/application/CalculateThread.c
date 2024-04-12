@@ -18,7 +18,6 @@
 #include "Setting.h"
 #include "kalman filter.h"
 #include "Usb.h"
-#include "UsbPackage.h"
 
 #include PARAMETER_FILE
 #include KEYMAP_FILE
@@ -59,7 +58,7 @@ void ShootSpeedAdopt(void);
 //int dafu_flag = 0;
 
 
-bool_t single_shoot_flag=0;//单发开关
+bool_t single_shoot_flag=1;//单发开关
 bool_t auto_fire_flag=0;//自动开火开关
 bool_t switch_flag=0;//打符切换开关
 int16_t dealta_heat=0;
@@ -90,8 +89,8 @@ void CalculateThread(void const * pvParameters)
     osDelay(500);
     PID_init(&Gimbal.Pid.AmmoLeft, PID_POSITION, AMMO_LEFT_SPEED_30MS, M3508_MAX_OUTPUT, M3508_MAX_IOUTPUT);//左右摩擦轮pid初始化
     PID_init(&Gimbal.Pid.AmmoRight, PID_POSITION, AMMO_RIGHT_SPEED_30MS, M3508_MAX_OUTPUT, M3508_MAX_IOUTPUT);
-    LoopFifoFp32_init(&Gimbal.ImuBuffer.YawLoopPointer, Gimbal.ImuBuffer.YawAddress, 64);//自瞄数据fifo初始化
-    LoopFifoFp32_init(&Gimbal.ImuBuffer.PitchLoopPointer, Gimbal.ImuBuffer.PitchAddress, 64);
+//    LoopFifoFp32_init(&Gimbal.ImuBuffer.YawLoopPointer, Gimbal.ImuBuffer.YawAddress, 64);//自瞄数据fifo初始化
+//    LoopFifoFp32_init(&Gimbal.ImuBuffer.PitchLoopPointer, Gimbal.ImuBuffer.PitchAddress, 64);
     first_order_filter_init(&pitch_aimbot_filter, 1000, &pitch_aimbot_filter_param);//滤波器初始化
 	first_order_filter_init(&pitch_f,0.001,&pitch_aimbot_filter_param);
 	while(1)
@@ -101,8 +100,8 @@ void CalculateThread(void const * pvParameters)
         GetRefereeInformation(&Referee);//获取裁判系统信息 包括枪口的限制
         DeviceOfflineMonitorUpdate(&Offline);//获取模块离线信息
         
-        LoopFifoFp32_push(&Gimbal.ImuBuffer.YawLoopPointer, Gimbal.Imu.YawAngle);
-        LoopFifoFp32_push(&Gimbal.ImuBuffer.PitchLoopPointer, Gimbal.Imu.PitchAngle);//陀螺仪数据入栈
+//        LoopFifoFp32_push(&Gimbal.ImuBuffer.YawLoopPointer, Gimbal.Imu.YawAngle);
+//        LoopFifoFp32_push(&Gimbal.ImuBuffer.PitchLoopPointer, Gimbal.Imu.PitchAngle);//陀螺仪数据入栈
         
         GimbalStateMachineUpdate();//根据遥控器拨杆决定当前状态（无力，初始化，测试，比赛）
         ChassisStateMachineUpdate();//底盘状态改变
@@ -115,7 +114,7 @@ void CalculateThread(void const * pvParameters)
         ChassisCommandUpdate();//底盘指令转换
         RotorCommandUpdate();//拨盘控制转换
 		if(ammo_speed_ad_flag==1){
-			ShootSpeedAdopt();
+			//ShootSpeedAdopt();
 			}//摩擦轮速度调整
         AmmoCommandUpdate();//发射部分控制转化
 		
@@ -560,7 +559,7 @@ void GimbalCommandUpdate(void)
         Gimbal.Command.Pitch += GIMBAL_CMD_PITCH_KEYMAP;
         Gimbal.Command.Yaw = loop_fp32_constrain(Gimbal.Command.Yaw, Gimbal.Imu.YawAngle - 180.0f, Gimbal.Imu.YawAngle + 180.0f);
         Gimbal.Command.Pitch = fp32_constrain(Gimbal.Command.Pitch, PITCH_MIN_ANGLE, PITCH_MAX_ANGLE);
-        Gimbal.Output.Yaw = cascade_PID_calc(&Gimbal.Pid.Yaw, Gimbal.Imu.YawAngle-Gimbal.MotorMeasure.GimbalMotor.YawMotorSpeed*0.0142 , Gimbal.Imu.YawSpeed, Gimbal.Command.Yaw);
+        Gimbal.Output.Yaw = cascade_PID_calc(&Gimbal.Pid.Yaw, Gimbal.Imu.YawAngle-Gimbal.MotorMeasure.GimbalMotor.YawMotorSpeed*0.0122 , Gimbal.Imu.YawSpeed, Gimbal.Command.Yaw);
         Gimbal.Output.Pitch = cascade_PID_calc(&Gimbal.Pid.Pitch, Gimbal.Imu.PitchAngle, Gimbal.Imu.PitchSpeed, Gimbal.Command.Pitch);
 //		if(Gimbal.StateMachine ==GM_MATCH) {
 //			Gimbal.Output.Pitch = cascade_PID_calc(&Gimbal.Pid.Pitch, pitch_kf.x, Gimbal.Imu.PitchSpeed, Gimbal.Command.Pitch);
@@ -568,27 +567,27 @@ void GimbalCommandUpdate(void)
 		pitch_aimbot_filter.out = Gimbal.Command.Pitch;
     }
     else if (Gimbal.ControlMode == GM_AIMBOT_OPERATE || (Gimbal.ControlMode == GM_AIMBOT_RUNES)){
-//        Gimbal.Command.Yaw = Gimbal.Imu.YawAngle + Aimbot.YawRelativeAngle;
-//        Gimbal.Command.Pitch = Gimbal.Imu.PitchAngle + Aimbot.PitchRelativeAngle;
-        Gimbal.Command.Yaw = LoopFifoFp32_read(&Gimbal.ImuBuffer.YawLoopPointer, (GetSystemTimer() - Aimbot.SystemTimer+t)) + Aimbot.YawRelativeAngle;
-        Gimbal.Command.Pitch = LoopFifoFp32_read(&Gimbal.ImuBuffer.PitchLoopPointer, (GetSystemTimer() - Aimbot.SystemTimer+t)) + Aimbot.PitchRelativeAngle + aimbot_pitch_bias;
+        Gimbal.Command.Yaw = Aimbot.YawRelativeAngle;
+        Gimbal.Command.Pitch = Aimbot.PitchRelativeAngle;
+//        Gimbal.Command.Yaw = LoopFifoFp32_read(&Gimbal.ImuBuffer.YawLoopPointer, (GetSystemTimer() - Aimbot.SystemTimer+t)) + Aimbot.YawRelativeAngle;
+//        Gimbal.Command.Pitch = LoopFifoFp32_read(&Gimbal.ImuBuffer.PitchLoopPointer, (GetSystemTimer() - Aimbot.SystemTimer+t)) + Aimbot.PitchRelativeAngle + aimbot_pitch_bias;
 //        fp32 pitch_command = LoopFifoFp32_read(&Gimbal.ImuBuffer.PitchLoopPointer, (GetSystemTimer() - Aimbot.CommandTimer)) + Aimbot.PitchRelativeAngle;
 //        first_order_filter_cali(&pitch_aimbot_filter, pitch_command);
 //        Gimbal.Command.Pitch = pitch_aimbot_filter.out;
         Gimbal.Command.Yaw = loop_fp32_constrain(Gimbal.Command.Yaw, Gimbal.Imu.YawAngle - 180.0f, Gimbal.Imu.YawAngle + 180.0f);
         Gimbal.Command.Pitch = fp32_constrain(Gimbal.Command.Pitch, PITCH_MIN_ANGLE, PITCH_MAX_ANGLE);
-        Gimbal.Output.Yaw = cascade_PID_calc(&Gimbal.Pid.Yaw, Gimbal.Imu.YawAngle-Gimbal.MotorMeasure.GimbalMotor.YawMotorSpeed*0.0142 , Gimbal.Imu.YawSpeed, Gimbal.Command.Yaw);
+        Gimbal.Output.Yaw = cascade_PID_calc(&Gimbal.Pid.Yaw, Gimbal.Imu.YawAngle-Gimbal.MotorMeasure.GimbalMotor.YawMotorSpeed*0.0122 , Gimbal.Imu.YawSpeed, Gimbal.Command.Yaw);
         Gimbal.Output.Pitch = cascade_PID_calc(&Gimbal.Pid.Pitch, Gimbal.Imu.PitchAngle, Gimbal.Imu.PitchSpeed, Gimbal.Command.Pitch);
     } 
     else if (Gimbal.ControlMode == GM_AIMBOT_RUNES){
         
-//        Gimbal.Command.Yaw = Gimbal.Imu.YawAngle + Aimbot.YawRelativeAngle;
-//        Gimbal.Command.Pitch = Gimbal.Imu.PitchAngle + Aimbot.PitchRelativeAngle;
-        Gimbal.Command.Yaw = LoopFifoFp32_read(&Gimbal.ImuBuffer.YawLoopPointer, (GetSystemTimer() - Aimbot.SystemTimer)) + Aimbot.YawRelativeAngle;
-        Gimbal.Command.Pitch = LoopFifoFp32_read(&Gimbal.ImuBuffer.PitchLoopPointer, (GetSystemTimer() - Aimbot.SystemTimer)) + Aimbot.PitchRelativeAngle + aimbot_pitch_bias;
+        Gimbal.Command.Yaw = Aimbot.YawRelativeAngle;
+        Gimbal.Command.Pitch = Aimbot.PitchRelativeAngle;
+//        Gimbal.Command.Yaw = LoopFifoFp32_read(&Gimbal.ImuBuffer.YawLoopPointer, (GetSystemTimer() - Aimbot.SystemTimer)) + Aimbot.YawRelativeAngle;
+//        Gimbal.Command.Pitch = LoopFifoFp32_read(&Gimbal.ImuBuffer.PitchLoopPointer, (GetSystemTimer() - Aimbot.SystemTimer)) + Aimbot.PitchRelativeAngle + aimbot_pitch_bias;
         Gimbal.Command.Yaw = loop_fp32_constrain(Gimbal.Command.Yaw, Gimbal.Imu.YawAngle - 180.0f, Gimbal.Imu.YawAngle + 180.0f);
         Gimbal.Command.Pitch = fp32_constrain(Gimbal.Command.Pitch, PITCH_MIN_ANGLE, PITCH_MAX_ANGLE);
-        Gimbal.Output.Yaw = cascade_PID_calc(&Gimbal.Pid.Yaw, Gimbal.Imu.YawAngle-Gimbal.MotorMeasure.GimbalMotor.YawMotorSpeed*0.0142 , Gimbal.Imu.YawSpeed, Gimbal.Command.Yaw);
+        Gimbal.Output.Yaw = cascade_PID_calc(&Gimbal.Pid.Yaw, Gimbal.Imu.YawAngle-Gimbal.MotorMeasure.GimbalMotor.YawMotorSpeed*0.0122 , Gimbal.Imu.YawSpeed, Gimbal.Command.Yaw);
         Gimbal.Output.Pitch = cascade_PID_calc(&Gimbal.Pid.Pitch, Gimbal.Imu.PitchAngle, Gimbal.Imu.PitchSpeed, Gimbal.Command.Pitch);
 
     }
@@ -598,7 +597,7 @@ void GimbalCommandUpdate(void)
         fp32 YawTempCommand = loop_fp32_constrain(YAW_ZERO_ECDANGLE, Gimbal.MotorMeasure.GimbalMotor.YawMotorAngle - 180.0f, Gimbal.MotorMeasure.GimbalMotor.YawMotorAngle + 180.0f);
 //        Gimbal.Output.Yaw = YAW_MOTOR_DIRECTION * cascade_PID_calc(&Gimbal.Pid.Yaw, Gimbal.MotorMeasure.GimbalMotor.YawMotorAngle, Gimbal.MotorMeasure.GimbalMotor.YawMotorSpeed, YAW_ZERO_ECDANGLE);
         Gimbal.Pid.Yaw.v_set = PID_calc(&Gimbal.Pid.Yaw.pid_outside, Gimbal.MotorMeasure.GimbalMotor.YawMotorAngle, YawTempCommand);
-        Gimbal.Output.Yaw = cascade_PID_calc(&Gimbal.Pid.Yaw, Gimbal.Imu.YawAngle-Gimbal.MotorMeasure.GimbalMotor.YawMotorSpeed*0.0142 , Gimbal.Imu.YawSpeed, Gimbal.Command.Yaw);
+        Gimbal.Output.Yaw = cascade_PID_calc(&Gimbal.Pid.Yaw, Gimbal.Imu.YawAngle-Gimbal.MotorMeasure.GimbalMotor.YawMotorSpeed*0.0122 , Gimbal.Imu.YawSpeed, Gimbal.Command.Yaw);
         Gimbal.Output.Pitch = cascade_PID_calc(&Gimbal.Pid.Pitch, Gimbal.Imu.PitchAngle, Gimbal.Imu.PitchSpeed, 0);
         pitch_aimbot_filter.out = Gimbal.Command.Pitch;
     }
@@ -906,27 +905,27 @@ void ShootSpeedAdopt(void)
 	shoot_speed_now=Referee.Ammo0Speed;
 	if(shoot_speed_last!=shoot_speed_now)
 	{
-		//如果弹速低于27.5m/s
-		if(shoot_speed_now < (shoot_limit - 2.5f) && shoot_speed_now >= (shoot_limit - 6.0f))
+		//如果弹速低于26.5m/s
+		if(shoot_speed_now < (shoot_limit - 3.5f) && shoot_speed_now >= (shoot_limit - 7.0f))
 		{
 			low_speed_time_num++;
 		}
 		/*超速判断*/ 		/*低速判断*/
-		if(((shoot_limit - 1.8f) <= shoot_speed_now ) ||low_speed_time_num == 3 )
+		if(((shoot_limit - 2.5f) <= shoot_speed_now ) ||low_speed_time_num == 3 )
 		{	
-			if((shoot_limit - 1.8)<shoot_speed_now)
-				{speed_high_flg = (shoot_limit - 1.8 - shoot_speed_now) * 102;}
-			else if((shoot_limit - 1.5)>shoot_speed_now)
-				{speed_high_flg = (shoot_limit - 1.8 - shoot_speed_now) * 70;}
+			if((shoot_limit - 2.5)<shoot_speed_now)
+				{speed_high_flg = (shoot_limit - 2.5 - shoot_speed_now) * 102;}
+			else if((shoot_limit - 2.5)>shoot_speed_now)
+				{speed_high_flg = (shoot_limit - 2.5 - shoot_speed_now) * 70;}
 			low_speed_time_num = 0;		
 		}
-		/*判断弹速是否在27.5到28.2之间*/
-		if(shoot_speed_now >= (shoot_limit - 1.8f))
+		/*判断弹速是否在26.5到27.5之间*/
+		if(shoot_speed_now >= (shoot_limit - 2.5f))
 		{
 			speed_dec_flag ++;
 		    speed_add_flag = 0;
 		}
-		if(shoot_speed_now <= (shoot_limit - 2.5f))
+		if(shoot_speed_now <= (shoot_limit - 3.5f))
 		{
 			speed_dec_flag = 0;
 			speed_add_flag++;

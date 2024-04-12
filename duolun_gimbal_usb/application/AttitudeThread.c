@@ -23,7 +23,7 @@
 #include "CanPacket.h"
 #include "Setting.h"
 
-
+#include "QuaternionEKF.h"
 #define IMU_temp_PWM(pwm)  imu_pwm_set(pwm)                    //pwm给定
 float bias=0.0022499999f;
 
@@ -134,12 +134,13 @@ void AttitudeThread(void const *pvParameters)
     SPI1_DMA_init((uint32_t)gyro_dma_tx_buf, (uint32_t)gyro_dma_rx_buf, SPI_DMA_GYRO_LENGHT);
 
     imu_start_dma_flag = 1;//必须要初始化DMA之后才能去使能DMA，否则会出现只进一次DMA中断情况，此处留意
-
+	IMU_QuaternionEKF_Init(1,0.0001,50000000,0.9996,0.008);
     while (1)
     {
         AHRS_update(INS_quat, 0.001f, bmi088_real_data.gyro, bmi088_real_data.accel);
-        get_angle(INS_quat, INS_angle + INS_YAW_ADDRESS_OFFSET, INS_angle + INS_PITCH_ADDRESS_OFFSET, INS_angle + INS_ROLL_ADDRESS_OFFSET);
-//        IMU_Timer = GetSystemTimer();
+        get_angle(QEKF_INS.q, INS_angle + INS_YAW_ADDRESS_OFFSET, INS_angle + INS_PITCH_ADDRESS_OFFSET, INS_angle + INS_ROLL_ADDRESS_OFFSET);
+		memcpy(INS_quat,QEKF_INS.q,sizeof(QEKF_INS.q));
+		//        IMU_Timer = GetSystemTimer();
 //        CanSendMessage(&COMMUNICATE_CANPORT, IMU_PACKET_TIME_ID, 4, (uint8_t *)&IMU_Timer);
 //        CanSendMessage(&COMMUNICATE_CANPORT, IMU_PACKET_DATA0_ID, 8, (uint8_t *)&INS_quat[0]);
 //        CanSendMessage(&COMMUNICATE_CANPORT, IMU_PACKET_DATA1_ID, 8, (uint8_t *)&INS_quat[2]);
@@ -195,6 +196,7 @@ void GimbalEulerSystemMeasureUpdate(EulerSystemMeasure_t *IMU)
 void AHRS_update(fp32 quat[4], fp32 time, fp32 gyro[3], fp32 accel[3])
 {
     MahonyAHRSupdate(quat, gyro[1], -gyro[0], gyro[2]+bias, accel[1], -accel[0], accel[2], 0, 0, 0);
+	IMU_QuaternionEKF_Update(gyro[1], -gyro[0], gyro[2]+bias, accel[1], -accel[0], accel[2],0.001f);
 }
 void GimbalEulerSystemMeasureUpdate(EulerSystemMeasure_t *IMU)
 {

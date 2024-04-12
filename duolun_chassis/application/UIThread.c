@@ -192,31 +192,67 @@ void UI(void const * argument)
 			num--;top=head[num];
 			osDelay(100);
 			//д╛ходёй╫		
-			Char_Draw(&open2,"opp",UI_Graph_ADD,1,UI_Color_White,16,4,2,225,760,"manu");
-			Char_ReFresh(open2);
+			if(  (PTZ.PTZStatusInformation     &  64) == 64)
+			{
+				Char_Draw(&open2,"opp",UI_Graph_ADD,1,UI_Color_Purplish_red,16,4,2,225,760,"auto");
+				Char_ReFresh(open2);
+			}
+			else
+			{
+				Char_Draw(&open2,"opp",UI_Graph_ADD,1,UI_Color_White,16,4,2,225,760,"manu");
+				Char_ReFresh(open2);	
+			}	
 			usart6_tx_dma_enable(UIsend_buffer+head[num-1],head[num]-head[num-1]);
 			num--;top=head[num];	
 			osDelay(100);
-			Char_Draw(&open3,"oop",UI_Graph_ADD,1,UI_Color_White,16,7,2,225,731,"close ");
-			Char_ReFresh(open3);
+			if((PTZ.AimTargetRequest & 0x02) == 0x02){
+				Char_Draw(&open3,"oop",UI_Graph_ADD,1,UI_Color_Purplish_red,16,7,2,225,731,"open  ");
+				Char_ReFresh(open3);
+			}
+			else
+			{
+				Char_Draw(&open3,"oop",UI_Graph_ADD,1,UI_Color_White,16,7,2,225,731,"close ");
+				Char_ReFresh(open3);	
+			}
 			usart6_tx_dma_enable(UIsend_buffer+head[num-1],head[num]-head[num-1]);
 			num--;top=head[num];	
 			osDelay(100);
-			Char_Draw(&open1,"op",UI_Graph_ADD,1,UI_Color_White,16,7,2,225,702,"close ");
-			Char_ReFresh(open1);
+			if( (PTZ.PTZStatusInformation   & 16 ) == 16)
+			{
+				Char_Draw(&open1,"op",UI_Graph_ADD,1,UI_Color_Purplish_red,16,7,2,225,702,"open  ");
+				Char_ReFresh(open1);
+			}
+			else
+			{
+				Char_Draw(&open1,"op",UI_Graph_ADD,1,UI_Color_White,16,7,2,225,702,"close ");
+				Char_ReFresh(open1);		
+			}
 			usart6_tx_dma_enable(UIsend_buffer+head[num-1],head[num]-head[num-1]);
 			num--;top=head[num];	
 			osDelay(100);		
-			Char_Draw(&rune,"run",UI_Graph_ADD,1,UI_Color_White,16,7,2,225,672,"NORMAL");
-			Char_ReFresh(rune);
+			if(PTZ.AimTargetRequest & 0x20)
+			{
+				Char_Draw(&rune,"run",UI_Graph_ADD,1,UI_Color_Pink,16,7,2,225,672,"BIG    ");
+				Char_ReFresh(rune);
+			}
+			else if(PTZ.AimTargetRequest & 0x10)
+			{
+				Char_Draw(&rune,"run",UI_Graph_ADD,1,UI_Color_Cyan,16,7,2,225,672,"SMALL  ");
+				Char_ReFresh(rune);
+			}
+			else 
+			{
+				Char_Draw(&rune,"run",UI_Graph_ADD,1,UI_Color_White,16,7,2,225,672,"NORMAL");
+				Char_ReFresh(rune);	
+			}
 			usart6_tx_dma_enable(UIsend_buffer+head[num-1],head[num]-head[num-1]);
 			num--;top=head[num];	
 			osDelay(100);
 			mode=NOFORCE;
-			fire_mode=0x00;
-			shoot_mode=0x00;
-			cover_mode=0x00;
-			aim_mode=0x00;
+			fire_mode=(PTZ.PTZStatusInformation&64);
+			shoot_mode=(PTZ.AimTargetRequest&0x02);
+			cover_mode=(PTZ.PTZStatusInformation&16);
+			aim_mode=(PTZ.PTZStatusInformation&16);
 			match_mode=0x00;
 		}
 
