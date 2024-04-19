@@ -22,10 +22,15 @@
 
 #include "UsbPackage.h"
 #include "Usb.h"
-
+#include "bsp_usart.h"
 #define UART_printf(...)  HAL_UART_Transmit(&huart1,\
 																				(uint8_t  *)u1_buf,\
-																				sprintf((char*)u1_buf,__VA_ARGS__),0x150)
+																				sprintf((char*)u1_buf,__VA_ARGS__),0x120)
+
+#define DMA_printf(...)      __HAL_DMA_DISABLE(&hdma_usart1_tx);\
+																				HAL_UART_Transmit_DMA(&huart1,\
+																				(uint8_t  *)u1_buf,\
+																				sprintf((char*)u1_buf,__VA_ARGS__))
 uint8_t u1_buf[30];
 
 HAL_StatusTypeDef status;
@@ -128,7 +133,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
         {
             RefereeAmmoSpeedNode0OfflineCounterUpdate();
             RefereeAmmoSpeedNode0InformationUpdate(rx_data);
-			//UART_printf("%f\r\n",Referee.Ammo0Speed);
+			DMA_printf("%f\r\n",Referee.Ammo0Speed);
 			ammo_speed_ad_flag=1;
             break;
         }
@@ -293,7 +298,16 @@ void USART3_IRQHandler(void)
     }
 
 }
+void USART1_IRQHandler(void)
+{
+  /* USER CODE BEGIN USART1_IRQn 0 */
 
+  /* USER CODE END USART1_IRQn 0 */
+  HAL_UART_IRQHandler(&huart1);
+  /* USER CODE BEGIN USART1_IRQn 1 */
+
+  /* USER CODE END USART1_IRQn 1 */
+}
 
 /** 
   * @brief This function handles TIM3 global interrupt.
@@ -350,14 +364,12 @@ void TimerTaskLoop100Hz(void)
     //GimbalImuPacketSend();
 	//UART_printf("%f,%f\n",Gimbal.MotorMeasure.ShootMotor.AmmoLeftMotorSpeed,Gimbal.MotorMeasure.ShootMotor.AmmoRightMotorSpeed);
 }
-
+uint8_t a=0;
 void TimerTaskLoop100Hz_1(void)
 {
-//   if(Referee.Ammo0Speed!=0&&speed!=Referee.Ammo0Speed){
-//	UART_printf("%f\n",Referee.Ammo0Speed);
-//	speed=Referee.Ammo0Speed;
-//	}
-	//UART_printf("%f,%f\n",Gimbal.MotorMeasure.ShootMotor.AmmoRightMotorSpeed,Gimbal.MotorMeasure.ShootMotor.AmmoLeftMotorSpeed/*,pitch_kf.x*/);
+	//usart1_tx_dma_enable((uint8_t*)"1\n",2);
+	
+		//DMA_printf("%f,%f\n",Gimbal.MotorMeasure.ShootMotor.AmmoRightMotorSpeed,Gimbal.MotorMeasure.ShootMotor.AmmoLeftMotorSpeed/*,pitch_kf.x*/);
 }
 
 

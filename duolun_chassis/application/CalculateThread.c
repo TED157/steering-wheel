@@ -29,7 +29,7 @@ float WheelAngle[4];
 
 fp32 wz;
 fp32 roting_speed;
-fp32 Angle_zero_6020[4] = {-72.1, -61.5, -127.1, 30.4};
+fp32 Angle_zero_6020[4] = {-74.6, -131.2, -126.8, 31.8};
 //fp32 Angle_zero_6020[4] = {0, 0, 0, 0};
 fp32 Direction[5] = {-1.0, -1.0, 1.0, 1.0, -1.0};
 fp32 Maxspeed = 6000.0f;
@@ -90,7 +90,7 @@ fp32 left_front_6020_position_PID[3] = {POSITION_6020_KP, POSITION_6020_KI, POSI
 fp32 right_front_6020_position_PID[3] = {POSITION_6020_KP, POSITION_6020_KI, POSITION_6020_KD};
 fp32 right_back_6020_position_PID[3] = {POSITION_6020_KP, POSITION_6020_KI, POSITION_6020_KD};
 fp32 left_back_6020_position_PID[3] = {3.8, POSITION_6020_KI, 3.0};
-fp32 left_front_3508_PID[3] = {speed_3508_KP*1.2, speed_3508_KI, speed_3508_KD};
+fp32 left_front_3508_PID[3] = {speed_3508_KP_L, speed_3508_KI_L, speed_3508_KD_L};
 fp32 right_front_3508_PID[3] = {speed_3508_KP, speed_3508_KI, speed_3508_KD};
 fp32 right_back_3508_PID[3] = {speed_3508_KP, speed_3508_KI, speed_3508_KD};
 fp32 left_back_3508_PID[3] = {speed_3508_KP, speed_3508_KI, speed_3508_KD};
@@ -251,17 +251,17 @@ void ChassisCommandUpdate()
 			else if(angle_minus<-180) angle_minus+=360;
 			Chassis.vx = ((PTZ.FBSpeed / 32767.0f) * cos(angle_minus/180.0*PI) - (PTZ.LRSpeed / 32767.0f) * sin(angle_minus/180.0*PI)) * (v_gain );
 			Chassis.vy =  ((PTZ.FBSpeed / 32767.0f) * sin(angle_minus/180.0*PI) + (PTZ.LRSpeed / 32767.0f) * cos(angle_minus/180.0*PI)) * (v_gain );
-			if(Chassis.vx*Chassis.vy !=0)  follow.max_out=0.9;
-			else follow.max_out=2;
+//			if(Chassis.vx*Chassis.vy !=0)  follow.max_out=0.9;
+//			else follow.max_out=2;
 			Chassis.wz = -PID_calc(&follow,YawMotorMeasure.angle,follow_angle); //* (1.0f + Chassis.Power_Proportion /Power_Max );
 			//Chassis.wz = 0;
 		}
 		else if (Chassis.Mode == ROTING)
 		{
 			angle_minus = -YawMotorMeasure.angle + FollowAngle - YawMotorMeasure.speed_rpm * 0.64;
-			Chassis.wz = sin(v_gain/4.2)*3.5;
-			Chassis.vx = ((PTZ.FBSpeed / 32767.0f) * cos(angle_minus/180.0*PI) - (PTZ.LRSpeed / 32767.0f) * sin(angle_minus/180.0*PI))*v_gain/2;//* (1.0f + Chassis.Power_Proportion /Power_Max );
-			Chassis.vy = ((PTZ.FBSpeed / 32767.0f) * sin(angle_minus/180.0*PI) + (PTZ.LRSpeed / 32767.0f) * cos(angle_minus/180.0*PI))*v_gain/2;//* (1.0f + Chassis.Power_Proportion /Power_Max );
+			Chassis.wz = sin(v_gain/4.2)*1.6;
+			Chassis.vx = ((PTZ.FBSpeed / 32767.0f) * cos(angle_minus/180.0*PI) - (PTZ.LRSpeed / 32767.0f) * sin(angle_minus/180.0*PI))*v_gain/1.8;//* (1.0f + Chassis.Power_Proportion /Power_Max );
+			Chassis.vy = ((PTZ.FBSpeed / 32767.0f) * sin(angle_minus/180.0*PI) + (PTZ.LRSpeed / 32767.0f) * cos(angle_minus/180.0*PI))*v_gain/1.8;//* (1.0f + Chassis.Power_Proportion /Power_Max );
 		}
 		else if (Chassis.Mode == STOP)
 		{
@@ -286,17 +286,17 @@ void ChassisCommandUpdate()
 		}
 		else
 		{
-			if(stop_flag==1)
-			{
-				stop_countdown=60;
-				stop_flag=2;
-			}
-			if(stop_countdown!=1)
-			{
-				stop_countdown--;
-			}
-			else{
-			stop_flag=0;
+//			if(stop_flag==1)
+//			{
+//				stop_countdown=60;
+//				stop_flag=2;
+//			}
+//			if(stop_countdown!=1)
+//			{
+//				stop_countdown--;
+//			}
+//			else{
+//			stop_flag=0;
 			if(Chassis.wz > 0)
 			{
 			Chassis.WheelAngle[0] = -135.0f + Angle_zero_6020[0];
@@ -318,7 +318,7 @@ void ChassisCommandUpdate()
 			Chassis.WheelAngle[2] = 0 + Angle_zero_6020[2];
 			Chassis.WheelAngle[3] = 0 + Angle_zero_6020[3];						
 			}
-		}
+		//}
 		}
 		Chassis.WheelAngle[0] = loop_fp32_constrain(Chassis.WheelAngle[0], LEFT_FRONT_6020_Measure.angle - 180.0f, LEFT_FRONT_6020_Measure.angle + 180.0f);
 		Chassis.WheelAngle[1] = loop_fp32_constrain(Chassis.WheelAngle[1], RIGHT_FRONT_6020_Measure.angle - 180.0f, RIGHT_FRONT_6020_Measure.angle + 180.0f);
@@ -328,9 +328,9 @@ void ChassisCommandUpdate()
 				//电容的使用
 		if(((CMS_Data.cms_status) & (uint16_t) 1) != 1 && CMS_Data.TxOpen == 1)
 		{
-			Chassis.vx = 2 * Chassis.vx ;
-			Chassis.vy = 2 * Chassis.vy ;
-			Chassis.wz = 2 * Chassis.wz ;
+			Chassis.vx = 2.8 * Chassis.vx ;
+			Chassis.vy = 1.0 * Chassis.vy ;
+			Chassis.wz = 1.0 * Chassis.wz ;
 			CMS_Data.Mode = 1;
 		}
 		else CMS_Data.Mode = 0;
@@ -345,12 +345,12 @@ void ChassisCommandUpdate()
 		Chassis.WheelSpeed[1] = speed[1];
 		Chassis.WheelSpeed[2] = speed[2];
 		Chassis.WheelSpeed[3] = -speed[3];
-		if(stop_flag==2){
-			Chassis.WheelSpeed[0] = 0;
-			Chassis.WheelSpeed[1] = 0;
-			Chassis.WheelSpeed[2] = 0;
-			Chassis.WheelSpeed[3] = 0;
-		}
+//		if(stop_flag==2){
+//			Chassis.WheelSpeed[0] = 0;
+//			Chassis.WheelSpeed[1] = 0;
+//			Chassis.WheelSpeed[2] = 0;
+//			Chassis.WheelSpeed[3] = 0;
+//		}
 //		if(Fabs(Fabs(LEFT_FRONT_6020_Measure.angle-Chassis.WheelAngle[0])>1.5
 //			||RIGHT_FRONT_6020_Measure.angle-Chassis.WheelAngle[1])>1.5 
 //			|| Fabs(RIGHT_BACK_6020_Measure.angle-Chassis.WheelAngle[2])>1.5
@@ -465,12 +465,12 @@ void CMS__()
 	else if(CMS_Data.cms_cap_v > 18){
 		CMS_Data.charge_flag=0;
 	}
-	if((Chassis.CapKey) && CMS_Data.cms_cap_v > 12 && CMS_Data.charge_flag==0)
+	if((Chassis.CapKey) && CMS_Data.cms_cap_v > 12 && CMS_Data.charge_flag==0 )
 	{
 		CMS_Data.TxOpen = 1;
 	}
 	else CMS_Data.TxOpen =0;	
-	if(power_heat_data_t.buffer_energy < 30 || cms_offline_counter > 200) //cms用不了
+	if(/*power_heat_data_t.buffer_energy < 30 || */cms_offline_counter > 200) //cms用不了
 	{
 		CMS_Data.TxOpen = 0;	
 	}
@@ -519,7 +519,7 @@ uint8_t chassis_powerloop(Chassis_t *Chassis)
 
 	lijupower = he + START_POWER;
 
-	if (CMS_Data.cms_cap_v <= 15 || power_heat_data_t.buffer_energy <= 30 || cms_offline_counter > 500)
+	if (CMS_Data.cms_cap_v <= 15 || cms_offline_counter > 500 || power_heat_data_t.buffer_energy<50)
 	{
 		power_flag = 0;
 	}
@@ -528,7 +528,7 @@ uint8_t chassis_powerloop(Chassis_t *Chassis)
 	{
 		Power_Max += 30;
 	}
-    if(power_flag == 0){
+    if(power_flag == 0 && CMS_Data.TxOpen!=1){
 		if (power_heat_data_t.buffer_energy > 58)
 			
 		{
@@ -566,7 +566,7 @@ uint8_t chassis_powerloop(Chassis_t *Chassis)
 			//power_scale = 1;
 		}
 	}
-	if (lijupower > Power_Max && power_flag == 0)
+	if (lijupower > Power_Max && power_flag == 0 && CMS_Data.TxOpen!=1)
 	{
 		power_scale = (Power_Max-2) / lijupower;
 		Chassis->Current[0] *= (power_scale) * (Plimit);

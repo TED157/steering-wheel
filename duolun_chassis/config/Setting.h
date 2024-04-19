@@ -38,7 +38,7 @@
 
 #define FOLLOW_KP						0.101f
 #define FOLLOW_KI						0.0f
-#define FOLLOW_KD						3.5f
+#define FOLLOW_KD						6.5f
 
 
 
@@ -46,17 +46,21 @@
 #define TURN_KI							0.0f//0.0f
 #define TURN_KD							0.0f//50000.0f
  
-#define SPEED_6020_KP							120.0f
+#define SPEED_6020_KP							110.0f
 #define SPEED_6020_KI							0.0f
 #define SPEED_6020_KD							1.0f
 
-#define POSITION_6020_KP                        7.0f
+#define POSITION_6020_KP                        4.0f
 #define POSITION_6020_KI                        0.0f
-#define POSITION_6020_KD                        0.03f
+#define POSITION_6020_KD                        0.1f
 
-#define speed_3508_KP							3000.0f
+#define speed_3508_KP							3100.0f
 #define speed_3508_KI							0.0f
 #define speed_3508_KD							0.0f
+
+#define speed_3508_KP_L							3100.0f
+#define speed_3508_KI_L							0.0f
+#define speed_3508_KD_L							0.0f
 
 #define power_control_KP                        0.5f
 #define power_control_KI                        0.01000000016f 

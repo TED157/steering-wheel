@@ -89,7 +89,7 @@ void usart1_tx_dma_init(void)
 
 
 }
-void usart1_tx_dma_enable(uint8_t *data, uint16_t len)
+void usart1_tx_dma_enable(uint8_t *data, uint32_t len)
 {
     //disable DMA
     //ʧЧDMA

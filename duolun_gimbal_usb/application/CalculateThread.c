@@ -58,8 +58,8 @@ void ShootSpeedAdopt(void);
 //int dafu_flag = 0;
 
 
-bool_t single_shoot_flag=1;//单发开关
-bool_t auto_fire_flag=0;//自动开火开关
+bool_t single_shoot_flag=0;//单发开关
+bool_t auto_fire_flag=1;//自动开火开关
 bool_t switch_flag=0;//打符切换开关
 int16_t dealta_heat=0;
 int32_t onelasttime=0;
@@ -81,6 +81,7 @@ uint8_t pitch_flag=0;
 float ammo_speed_l=AMMO_SPEEDSET_30MS_L;
 float ammo_speed_r=AMMO_SPEEDSET_30MS_R;
 extern uint8_t ammo_speed_ad_flag;
+uint16_t shoot_delay=0;
 void CalculateThread(void const * pvParameters)
 {
 	
@@ -114,7 +115,7 @@ void CalculateThread(void const * pvParameters)
         ChassisCommandUpdate();//底盘指令转换
         RotorCommandUpdate();//拨盘控制转换
 		if(ammo_speed_ad_flag==1){
-			//ShootSpeedAdopt();
+			ShootSpeedAdopt();
 			}//摩擦轮速度调整
         AmmoCommandUpdate();//发射部分控制转化
 		
@@ -341,7 +342,7 @@ void GimbalFireModeUpdate(void)
 						if(single_shoot_flag==1||Offline.RefereeAmmoLimitNode0==1)
 								gimbal_fire_countdown=50;//time interval
 						else 
-								gimbal_fire_countdown=(int)(10000.0/(dealta_heat/1.7+Referee.Ammo0Limit.Cooling/2.0+5)-45);
+								gimbal_fire_countdown=(int)(9000.0/(dealta_heat/1.7+Referee.Ammo0Limit.Cooling/2.0+5)-45);
 						Gimbal.FireMode=GM_FIRE_COOLING; //no shoot
 				}
 
@@ -751,7 +752,7 @@ void GetGimbalRequestState(GimbalRequestState_t *RequestState)
 		RequestState->AimbotRequest |= (uint8_t)(1 << 4);
 		GimabalImu.mode |= (uint8_t)(1 << 3);
 	}
-	if(big_rune_flag){
+	else if(big_rune_flag){
 		RequestState->AimbotRequest |= (uint8_t)(1 << 5);
 		GimabalImu.mode |= (uint8_t)(1 << 2);
 	}
@@ -760,7 +761,7 @@ void GetGimbalRequestState(GimbalRequestState_t *RequestState)
 		GimabalImu.mode |= (uint8_t)(1 << 1);
 	}
 	if(single_shoot_flag){
-		RequestState->AimbotRequest |= (uint8_t) (1 << 1);
+//		RequestState->AimbotRequest |= (uint8_t) (1 << 0);
 	}
 
     
@@ -829,7 +830,7 @@ void GetGimbalRequestState(GimbalRequestState_t *RequestState)
 		}
 		if(Gimbal.StateMachine==GM_MATCH)
 		{
-			RequestState->GimbalState |= (uint8_t) (1 << 6);
+			RequestState->GimbalState |= (uint8_t) (1 << 7);
 		}
 		
 	GimabalImu.robot_id=Referee.RobotState.RobotID;
@@ -914,9 +915,9 @@ void ShootSpeedAdopt(void)
 		if(((shoot_limit - 2.5f) <= shoot_speed_now ) ||low_speed_time_num == 3 )
 		{	
 			if((shoot_limit - 2.5)<shoot_speed_now)
-				{speed_high_flg = (shoot_limit - 2.5 - shoot_speed_now) * 102;}
+				{speed_high_flg = (shoot_limit - 2.5 - shoot_speed_now) * 90;}
 			else if((shoot_limit - 2.5)>shoot_speed_now)
-				{speed_high_flg = (shoot_limit - 2.5 - shoot_speed_now) * 70;}
+				{speed_high_flg = (shoot_limit - 2.5 - shoot_speed_now) * 30;}
 			low_speed_time_num = 0;		
 		}
 		/*判断弹速是否在26.5到27.5之间*/
@@ -944,6 +945,15 @@ void ShootSpeedAdopt(void)
 			speed_add_flag = 0;		
 		}
 	}
+	if(shoot_speed_now>30)
+	{
+		shoot_delay=1000;
+	}
+	if(shoot_delay>0)
+	{
+		shoot_delay--;
+		Gimbal.Output.Rotor=0;
+	}
 	shoot_speed_last= shoot_speed_now;
 	/*超速处理 过低处理*/
 	if(Gimbal.StateMachine == GM_MATCH){
@@ -954,4 +964,8 @@ void ShootSpeedAdopt(void)
 	}
 	if(shoot_adot>2) shoot_adot=0;
 	ammo_speed_ad_flag=0;
+	if(ammo_speed_l<7000) ammo_speed_l=7000;
+	else if(ammo_speed_l>7800) ammo_speed_l=7800;
+	if(ammo_speed_r<7000) ammo_speed_r=7000;
+	else if(ammo_speed_l>7800) ammo_speed_l=7800;
 }

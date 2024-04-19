@@ -75,6 +75,7 @@ uint16_t KeyUsed = 0;
 void remote_control_init(void)
 {
     usart3_rx_dma_init(sbus_rx_buf[0], sbus_rx_buf[1], SBUS_RX_BUF_NUM);
+	usart1_tx_dma_init();
 }
 /**
   * @brief          get remote control data point

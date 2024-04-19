@@ -29,7 +29,7 @@
 // 左右
 #define CHASSIS_CMD_Y_KEYMAP            NormalizedLimit((RemoteChannalRightY() - CheakKeyPress(KEY_PRESSED_OFFSET_D) + CheakKeyPress(KEY_PRESSED_OFFSET_A)))
 // 高速
-#define CHASSIS_HIGH_SPEED_KEYMAP       CheakKeyPress(KEY_PRESSED_OFFSET_SHIFT)
+#define CHASSIS_HIGH_SPEED_KEYMAP       CheakKeyPress(KEY_PRESSED_OFFSET_C) || (RemoteDial() == -1.0f)
 // 不动
 #define CHASSIS_STOP_KEYMAP             CheakKeyPress(KEY_PRESSED_OFFSET_F)
 
@@ -37,7 +37,7 @@
 // 超级电容开关
 #define SUPER_CAP_SWITCH_KEYMAP         CheakKeyPress(KEY_PRESSED_OFFSET_C)  
 // 小陀螺
-#define CHASSIS_ROTATE_SWITCH_KEYMAP    CheakKeyPress(KEY_PRESSED_OFFSET_CTRL) || (RemoteDial() == -1.0f)
+#define CHASSIS_ROTATE_SWITCH_KEYMAP    CheakKeyPress(KEY_PRESSED_OFFSET_SHIFT)//|| (RemoteDial() == -1.0f)
 
 
 //打开弹舱盖
