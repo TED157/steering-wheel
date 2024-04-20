@@ -29,15 +29,16 @@
 // 左右
 #define CHASSIS_CMD_Y_KEYMAP            NormalizedLimit((RemoteChannalRightY() - CheakKeyPress(KEY_PRESSED_OFFSET_D) + CheakKeyPress(KEY_PRESSED_OFFSET_A)))
 // 高速
-#define CHASSIS_HIGH_SPEED_KEYMAP       CheakKeyPress(KEY_PRESSED_OFFSET_C) || (RemoteDial() == -1.0f)
+#define CHASSIS_HIGH_SPEED_KEYMAP       CheakKeyPress(KEY_PRESSED_OFFSET_C)// || (RemoteDial() == -1.0f)
 // 不动
 #define CHASSIS_STOP_KEYMAP             CheakKeyPress(KEY_PRESSED_OFFSET_F)
-
+//高速小陀螺
+#define CHASSIS_HIGH_SPEED_ROTATE       CheakKeyPress(KEY_PRESSED_OFFSET_CTRL)
 
 // 超级电容开关
 #define SUPER_CAP_SWITCH_KEYMAP         CheakKeyPress(KEY_PRESSED_OFFSET_C)  
 // 小陀螺
-#define CHASSIS_ROTATE_SWITCH_KEYMAP    CheakKeyPress(KEY_PRESSED_OFFSET_SHIFT)//|| (RemoteDial() == -1.0f)
+#define CHASSIS_ROTATE_SWITCH_KEYMAP    CheakKeyPress(KEY_PRESSED_OFFSET_SHIFT)  || (RemoteDial() == -1.0f) || CheakKeyPress(KEY_PRESSED_OFFSET_CTRL)
 
 
 //打开弹舱盖
@@ -62,9 +63,9 @@
 // 特殊自瞄任务请求（打符即单发模式）
 #define SINGLE_SHOOT_KEMAP              CheakKeyPressOnce(KEY_PRESSED_OFFSET_E)
 
-#define BIG_RUNE_KEYMAP                 CheakKeyPressOnce(KEY_PRESSED_OFFSET_G)
+#define BIG_RUNE_KEYMAP                 CheakKeyPress(KEY_PRESSED_OFFSET_G)
 
-#define SMALL_RUNE_KEYMAP				CheakKeyPressOnce(KEY_PRESSED_OFFSET_B)
+#define SMALL_RUNE_KEYMAP				CheakKeyPress(KEY_PRESSED_OFFSET_B)
 
 
 

@@ -21,7 +21,7 @@
 
 #include PARAMETER_FILE
 #include KEYMAP_FILE
-
+uint8_t resul=0;
 //#define printf(...)  HAL_UART_Transmit_DMA(&huart6,\
 //																				(uint8_t  *)u1_buf,\
 //																				sprintf((char*)u1_buf,__VA_ARGS__))
@@ -297,8 +297,25 @@ void GimbalFireModeUpdate(void)
         auto_fire_flag=(auto_fire_flag+1)%2;   
 	
 		//单发开关,key B
-	  if( big_rune_flag|| small_rune_flag)
+	  if(BIG_RUNE_KEYMAP&&((Remote.mouse.press_r==PRESS)||(Remote.rc.s[1]==RC_SW_UP)))
+	{
+		small_rune_flag = 0;
+		 big_rune_flag=1;//=(big_rune_flag+1)%2; 
+	}
+	else if(SMALL_RUNE_KEYMAP&&((Remote.mouse.press_r==PRESS)||(Remote.rc.s[1]==RC_SW_UP)))
+	{	
+		big_rune_flag = 0;
+		 small_rune_flag=1;//(small_rune_flag+1)%2;
+	}
+	else
+	{
+		small_rune_flag = 0;
+		 big_rune_flag=0;
+	}
+	  if( big_rune_flag|| small_rune_flag){
 		  single_shoot_flag = 1;
+		  Gimbal.ControlMode = GM_AIMBOT_RUNES;
+	  }
 	  else
 		{
 			if(SINGLE_SHOOT_KEMAP)  //key E
@@ -333,16 +350,16 @@ void GimbalFireModeUpdate(void)
 								Gimbal.FireMode=GM_FIRE_BUSY;									
 								gimbal_fire_countdown=ROTOR_TIMESET_BUSY;
 								if(Gimbal.ControlMode==GM_AIMBOT_RUNES)
-									gimbal_fire_countdown=40;
+									gimbal_fire_countdown=42;
 								count++;
 						}
         }
 				if(Gimbal.FireMode==GM_FIRE_BUSY&&gimbal_fire_countdown<=0)
 				{
 						if(single_shoot_flag==1||Offline.RefereeAmmoLimitNode0==1)
-								gimbal_fire_countdown=50;//time interval
+								gimbal_fire_countdown=48;//time interval
 						else 
-								gimbal_fire_countdown=(int)(9000.0/(dealta_heat/1.7+Referee.Ammo0Limit.Cooling/2.0+5)-45);
+								gimbal_fire_countdown=(int)(10000.0/(dealta_heat/1.7+Referee.Ammo0Limit.Cooling/2.0+5)-45);
 						Gimbal.FireMode=GM_FIRE_COOLING; //no shoot
 				}
 
@@ -560,7 +577,7 @@ void GimbalCommandUpdate(void)
         Gimbal.Command.Pitch += GIMBAL_CMD_PITCH_KEYMAP;
         Gimbal.Command.Yaw = loop_fp32_constrain(Gimbal.Command.Yaw, Gimbal.Imu.YawAngle - 180.0f, Gimbal.Imu.YawAngle + 180.0f);
         Gimbal.Command.Pitch = fp32_constrain(Gimbal.Command.Pitch, PITCH_MIN_ANGLE, PITCH_MAX_ANGLE);
-        Gimbal.Output.Yaw = cascade_PID_calc(&Gimbal.Pid.Yaw, Gimbal.Imu.YawAngle-Gimbal.MotorMeasure.GimbalMotor.YawMotorSpeed*0.0122 , Gimbal.Imu.YawSpeed, Gimbal.Command.Yaw);
+        Gimbal.Output.Yaw = cascade_PID_calc(&Gimbal.Pid.Yaw, Gimbal.Imu.YawAngle-Gimbal.MotorMeasure.GimbalMotor.YawMotorSpeed*0.0102 , Gimbal.Imu.YawSpeed, Gimbal.Command.Yaw);
         Gimbal.Output.Pitch = cascade_PID_calc(&Gimbal.Pid.Pitch, Gimbal.Imu.PitchAngle, Gimbal.Imu.PitchSpeed, Gimbal.Command.Pitch);
 //		if(Gimbal.StateMachine ==GM_MATCH) {
 //			Gimbal.Output.Pitch = cascade_PID_calc(&Gimbal.Pid.Pitch, pitch_kf.x, Gimbal.Imu.PitchSpeed, Gimbal.Command.Pitch);
@@ -568,8 +585,15 @@ void GimbalCommandUpdate(void)
 		pitch_aimbot_filter.out = Gimbal.Command.Pitch;
     }
     else if (Gimbal.ControlMode == GM_AIMBOT_OPERATE || (Gimbal.ControlMode == GM_AIMBOT_RUNES)){
-        Gimbal.Command.Yaw = Aimbot.YawRelativeAngle;
-        Gimbal.Command.Pitch = Aimbot.PitchRelativeAngle;
+		if((Gimbal.ControlMode == GM_AIMBOT_RUNES) && (Aimbot.AimbotState&1)==0)
+		{
+			Gimbal.Command.Yaw += GIMBAL_CMD_YAW_KEYMAP;
+			Gimbal.Command.Pitch += GIMBAL_CMD_PITCH_KEYMAP;
+		}
+		else{
+			Gimbal.Command.Yaw = Aimbot.YawRelativeAngle;
+			Gimbal.Command.Pitch = Aimbot.PitchRelativeAngle;
+		}
 //        Gimbal.Command.Yaw = LoopFifoFp32_read(&Gimbal.ImuBuffer.YawLoopPointer, (GetSystemTimer() - Aimbot.SystemTimer+t)) + Aimbot.YawRelativeAngle;
 //        Gimbal.Command.Pitch = LoopFifoFp32_read(&Gimbal.ImuBuffer.PitchLoopPointer, (GetSystemTimer() - Aimbot.SystemTimer+t)) + Aimbot.PitchRelativeAngle + aimbot_pitch_bias;
 //        fp32 pitch_command = LoopFifoFp32_read(&Gimbal.ImuBuffer.PitchLoopPointer, (GetSystemTimer() - Aimbot.CommandTimer)) + Aimbot.PitchRelativeAngle;
@@ -577,7 +601,7 @@ void GimbalCommandUpdate(void)
 //        Gimbal.Command.Pitch = pitch_aimbot_filter.out;
         Gimbal.Command.Yaw = loop_fp32_constrain(Gimbal.Command.Yaw, Gimbal.Imu.YawAngle - 180.0f, Gimbal.Imu.YawAngle + 180.0f);
         Gimbal.Command.Pitch = fp32_constrain(Gimbal.Command.Pitch, PITCH_MIN_ANGLE, PITCH_MAX_ANGLE);
-        Gimbal.Output.Yaw = cascade_PID_calc(&Gimbal.Pid.Yaw, Gimbal.Imu.YawAngle-Gimbal.MotorMeasure.GimbalMotor.YawMotorSpeed*0.0122 , Gimbal.Imu.YawSpeed, Gimbal.Command.Yaw);
+        Gimbal.Output.Yaw = cascade_PID_calc(&Gimbal.Pid.Yaw, Gimbal.Imu.YawAngle-Gimbal.MotorMeasure.GimbalMotor.YawMotorSpeed*0.0102 , Gimbal.Imu.YawSpeed, Gimbal.Command.Yaw);
         Gimbal.Output.Pitch = cascade_PID_calc(&Gimbal.Pid.Pitch, Gimbal.Imu.PitchAngle, Gimbal.Imu.PitchSpeed, Gimbal.Command.Pitch);
     } 
     else if (Gimbal.ControlMode == GM_AIMBOT_RUNES){
@@ -588,7 +612,7 @@ void GimbalCommandUpdate(void)
 //        Gimbal.Command.Pitch = LoopFifoFp32_read(&Gimbal.ImuBuffer.PitchLoopPointer, (GetSystemTimer() - Aimbot.SystemTimer)) + Aimbot.PitchRelativeAngle + aimbot_pitch_bias;
         Gimbal.Command.Yaw = loop_fp32_constrain(Gimbal.Command.Yaw, Gimbal.Imu.YawAngle - 180.0f, Gimbal.Imu.YawAngle + 180.0f);
         Gimbal.Command.Pitch = fp32_constrain(Gimbal.Command.Pitch, PITCH_MIN_ANGLE, PITCH_MAX_ANGLE);
-        Gimbal.Output.Yaw = cascade_PID_calc(&Gimbal.Pid.Yaw, Gimbal.Imu.YawAngle-Gimbal.MotorMeasure.GimbalMotor.YawMotorSpeed*0.0122 , Gimbal.Imu.YawSpeed, Gimbal.Command.Yaw);
+        Gimbal.Output.Yaw = cascade_PID_calc(&Gimbal.Pid.Yaw, Gimbal.Imu.YawAngle-Gimbal.MotorMeasure.GimbalMotor.YawMotorSpeed*0.0102 , Gimbal.Imu.YawSpeed, Gimbal.Command.Yaw);
         Gimbal.Output.Pitch = cascade_PID_calc(&Gimbal.Pid.Pitch, Gimbal.Imu.PitchAngle, Gimbal.Imu.PitchSpeed, Gimbal.Command.Pitch);
 
     }
@@ -598,7 +622,7 @@ void GimbalCommandUpdate(void)
         fp32 YawTempCommand = loop_fp32_constrain(YAW_ZERO_ECDANGLE, Gimbal.MotorMeasure.GimbalMotor.YawMotorAngle - 180.0f, Gimbal.MotorMeasure.GimbalMotor.YawMotorAngle + 180.0f);
 //        Gimbal.Output.Yaw = YAW_MOTOR_DIRECTION * cascade_PID_calc(&Gimbal.Pid.Yaw, Gimbal.MotorMeasure.GimbalMotor.YawMotorAngle, Gimbal.MotorMeasure.GimbalMotor.YawMotorSpeed, YAW_ZERO_ECDANGLE);
         Gimbal.Pid.Yaw.v_set = PID_calc(&Gimbal.Pid.Yaw.pid_outside, Gimbal.MotorMeasure.GimbalMotor.YawMotorAngle, YawTempCommand);
-        Gimbal.Output.Yaw = cascade_PID_calc(&Gimbal.Pid.Yaw, Gimbal.Imu.YawAngle-Gimbal.MotorMeasure.GimbalMotor.YawMotorSpeed*0.0122 , Gimbal.Imu.YawSpeed, Gimbal.Command.Yaw);
+        Gimbal.Output.Yaw = cascade_PID_calc(&Gimbal.Pid.Yaw, Gimbal.Imu.YawAngle-Gimbal.MotorMeasure.GimbalMotor.YawMotorSpeed*0.0102 , Gimbal.Imu.YawSpeed, Gimbal.Command.Yaw);
         Gimbal.Output.Pitch = cascade_PID_calc(&Gimbal.Pid.Pitch, Gimbal.Imu.PitchAngle, Gimbal.Imu.PitchSpeed, 0);
         pitch_aimbot_filter.out = Gimbal.Command.Pitch;
     }
@@ -737,17 +761,6 @@ void GetGimbalRequestState(GimbalRequestState_t *RequestState)
 	
 	GimabalImu.mode =0x00;
     RequestState->AimbotRequest = 0x00;
-	
-	if(BIG_RUNE_KEYMAP)
-	{
-		small_rune_flag = 0;
-		 big_rune_flag=(big_rune_flag+1)%2; 
-	}
-	if(SMALL_RUNE_KEYMAP)
-	{	
-		big_rune_flag = 0;
-		 small_rune_flag=(small_rune_flag+1)%2;
-	}
 	if(small_rune_flag){		
 		RequestState->AimbotRequest |= (uint8_t)(1 << 4);
 		GimabalImu.mode |= (uint8_t)(1 << 3);
@@ -761,7 +774,7 @@ void GetGimbalRequestState(GimbalRequestState_t *RequestState)
 		GimabalImu.mode |= (uint8_t)(1 << 1);
 	}
 	if(single_shoot_flag){
-//		RequestState->AimbotRequest |= (uint8_t) (1 << 0);
+		RequestState->AimbotRequest |= (uint8_t) (1 << 1);
 	}
 
     
@@ -795,6 +808,9 @@ void GetGimbalRequestState(GimbalRequestState_t *RequestState)
 				if(CHASSIS_STOP_KEYMAP){
 					RequestState->ChassisStateRequest |= (uint8_t)(1<<2);
 				}
+				if(CHASSIS_HIGH_SPEED_ROTATE){
+					RequestState->ChassisStateRequest |= (uint8_t)(1<<6);
+				}	
         
 //        if (Chassis.ChassisSpeed = CHASSIS_NORMAL_SPEED) {
 //            RequestState->ChassisStateRequest |= (uint8_t)(1 << 5);

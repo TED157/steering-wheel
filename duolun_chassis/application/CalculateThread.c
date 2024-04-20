@@ -29,7 +29,7 @@ float WheelAngle[4];
 
 fp32 wz;
 fp32 roting_speed;
-fp32 Angle_zero_6020[4] = {-74.6, -131.2, -126.8, 31.8};
+fp32 Angle_zero_6020[4] = {-73.9, -132.0, -128.8, 26.8};
 //fp32 Angle_zero_6020[4] = {0, 0, 0, 0};
 fp32 Direction[5] = {-1.0, -1.0, 1.0, 1.0, -1.0};
 fp32 Maxspeed = 6000.0f;
@@ -51,7 +51,7 @@ fp32 v_gain=0;
 uint8_t Mode_last;
 uint8_t Mode_now;
 uint8_t stop_flag=0;
-uint8_t stop_countdown=0;
+uint16_t stop_countdown=0;
 
 pid_type_def follow_yaw;
 pid_type_def follow;
@@ -118,6 +118,7 @@ void Angle_Speed_calc();
 void CMS__();
 uint8_t chassis_powerloop(Chassis_t *Chassis);
 
+float vx_last=0,vy_last=0;
 void CalculateThread(void const *pvParameters)
 {
 
@@ -200,6 +201,8 @@ void ChassisModeUpdate()
 		break;
 	case 0x12:
 	case 0x32:
+	case 0x52:
+	case 0x72:
 		Chassis.Mode = ROTING;
 		break;
 	case 0x0A:
@@ -254,12 +257,16 @@ void ChassisCommandUpdate()
 //			if(Chassis.vx*Chassis.vy !=0)  follow.max_out=0.9;
 //			else follow.max_out=2;
 			Chassis.wz = -PID_calc(&follow,YawMotorMeasure.angle,follow_angle); //* (1.0f + Chassis.Power_Proportion /Power_Max );
-			//Chassis.wz = 0;
+			//Chassis.wz = -1;
 		}
 		else if (Chassis.Mode == ROTING)
 		{
-			angle_minus = -YawMotorMeasure.angle + FollowAngle - YawMotorMeasure.speed_rpm * 0.64;
+			angle_minus = -YawMotorMeasure.angle + FollowAngle - YawMotorMeasure.speed_rpm * 0.95;
 			Chassis.wz = sin(v_gain/4.2)*1.6;
+			if((PTZ.ChassisStatueRequest&64)==64)
+			{
+				Chassis.wz = sin(v_gain/4.2)*3.5;
+			}
 			Chassis.vx = ((PTZ.FBSpeed / 32767.0f) * cos(angle_minus/180.0*PI) - (PTZ.LRSpeed / 32767.0f) * sin(angle_minus/180.0*PI))*v_gain/1.8;//* (1.0f + Chassis.Power_Proportion /Power_Max );
 			Chassis.vy = ((PTZ.FBSpeed / 32767.0f) * sin(angle_minus/180.0*PI) + (PTZ.LRSpeed / 32767.0f) * cos(angle_minus/180.0*PI))*v_gain/1.8;//* (1.0f + Chassis.Power_Proportion /Power_Max );
 		}
@@ -277,26 +284,37 @@ void ChassisCommandUpdate()
 		
 		if (Fabs(PTZ.FBSpeed / 32767.0) > 0.05 || Fabs(PTZ.LRSpeed / 32767.0) > 0.05 )
 		{
+			
 			for (uint8_t i = 0; i < 4; )
 			{
 				Chassis.WheelAngle[i] = atan2((Chassis.vy) + Chassis.wz * gen2 * Direction[i], (Chassis.vx + Chassis.wz * gen2 * Direction[i + 1])) / 3.1415927 * 180.0 + Angle_zero_6020[i]; // ?????????
 				i++;
 			}
+			vx_last=Chassis.vx;
+			vy_last=Chassis.vy;
 			stop_flag=1;
 		}
 		else
 		{
-//			if(stop_flag==1)
-//			{
-//				stop_countdown=60;
-//				stop_flag=2;
-//			}
-//			if(stop_countdown!=1)
-//			{
-//				stop_countdown--;
-//			}
-//			else{
-//			stop_flag=0;
+			if(stop_flag==1 && Chassis.Mode==FALLOW)
+			{
+				stop_countdown=200;
+				stop_flag=2;
+			}
+			if(stop_countdown>0 && Chassis.Mode==FALLOW)
+			{
+				stop_countdown--;
+				for (uint8_t i = 0; i < 4; )
+				{
+				float k=sqrt(vy_last*vy_last+vx_last*vx_last);
+				Chassis.WheelAngle[i] = atan2(vy_last + Chassis.wz * k * gen2 * Direction[i], (vx_last + Chassis.wz * k * gen2 * Direction[i + 1])) / 3.1415927 * 180.0 + Angle_zero_6020[i]; 
+				i++;
+				}
+			}
+			else{
+			vx_last=0;
+			vy_last=0;
+			stop_flag=0;
 			if(Chassis.wz > 0)
 			{
 			Chassis.WheelAngle[0] = -135.0f + Angle_zero_6020[0];
@@ -318,7 +336,7 @@ void ChassisCommandUpdate()
 			Chassis.WheelAngle[2] = 0 + Angle_zero_6020[2];
 			Chassis.WheelAngle[3] = 0 + Angle_zero_6020[3];						
 			}
-		//}
+		}
 		}
 		Chassis.WheelAngle[0] = loop_fp32_constrain(Chassis.WheelAngle[0], LEFT_FRONT_6020_Measure.angle - 180.0f, LEFT_FRONT_6020_Measure.angle + 180.0f);
 		Chassis.WheelAngle[1] = loop_fp32_constrain(Chassis.WheelAngle[1], RIGHT_FRONT_6020_Measure.angle - 180.0f, RIGHT_FRONT_6020_Measure.angle + 180.0f);
@@ -329,7 +347,7 @@ void ChassisCommandUpdate()
 		if(((CMS_Data.cms_status) & (uint16_t) 1) != 1 && CMS_Data.TxOpen == 1)
 		{
 			Chassis.vx = 2.8 * Chassis.vx ;
-			Chassis.vy = 1.0 * Chassis.vy ;
+			Chassis.vy = 2.8 * Chassis.vy ;
 			Chassis.wz = 1.0 * Chassis.wz ;
 			CMS_Data.Mode = 1;
 		}
@@ -345,12 +363,12 @@ void ChassisCommandUpdate()
 		Chassis.WheelSpeed[1] = speed[1];
 		Chassis.WheelSpeed[2] = speed[2];
 		Chassis.WheelSpeed[3] = -speed[3];
-//		if(stop_flag==2){
-//			Chassis.WheelSpeed[0] = 0;
-//			Chassis.WheelSpeed[1] = 0;
-//			Chassis.WheelSpeed[2] = 0;
-//			Chassis.WheelSpeed[3] = 0;
-//		}
+		if(stop_flag==2){
+			Chassis.WheelSpeed[0] = 0;
+			Chassis.WheelSpeed[1] = 0;
+			Chassis.WheelSpeed[2] = 0;
+			Chassis.WheelSpeed[3] = 0;
+		}
 //		if(Fabs(Fabs(LEFT_FRONT_6020_Measure.angle-Chassis.WheelAngle[0])>1.5
 //			||RIGHT_FRONT_6020_Measure.angle-Chassis.WheelAngle[1])>1.5 
 //			|| Fabs(RIGHT_BACK_6020_Measure.angle-Chassis.WheelAngle[2])>1.5

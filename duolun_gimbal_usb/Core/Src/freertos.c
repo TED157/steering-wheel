@@ -120,7 +120,7 @@ void MX_FREERTOS_Init(void) {
   AttudThreadHandler = osThreadCreate(osThread(Attitude), NULL);
 
   /* definition and creation of Calculate */
-  osThreadDef(Calculate, CalculateThread, osPriorityHigh, 0, 1536);
+  osThreadDef(Calculate, CalculateThread, osPriorityHigh, 0, 2048);
   CalcThreadHandler = osThreadCreate(osThread(Calculate), NULL);
   
   /* definition and creation of Debug */

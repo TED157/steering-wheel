@@ -26,17 +26,17 @@
 #define AMMO_SPEEDSET_18MS                      5150
 #define AMMO_SPEEDSET_22MS                      6200
 #define AMMO_SPEEDSET_30MS                      7300//8800
-#define AMMO_SPEEDSET_30MS_L                    6500//7400//7800
-#define AMMO_SPEEDSET_30MS_R                    6500
+#define AMMO_SPEEDSET_30MS_L                    7050//7400//7800
+#define AMMO_SPEEDSET_30MS_R                    7050
 
-#define ROTOR_SPEEDSET_FORWARD                  4000.0f//5000.0f//5000
+#define ROTOR_SPEEDSET_FORWARD                  4300.0f//5000.0f//5000
 #define ROTOR_SPEEDSET_FORWARD_FAST             7000.0f
 #define ROTOR_SPEEDSET_BACKWARD                 -2000.0f
-#define ROTOR_SPEEDSET_FORWARD_RUNE             4250.0f//5000.0f//5000
+#define ROTOR_SPEEDSET_FORWARD_RUNE             4400.0f//5000.0f//5000
 
 #define HIGH_FREQ_COOLING_COEFFICIENT			360//440
 #define LOW_FREQ_COOLING_COEFFICIENT			200//4-  40
-#define ROTOR_TIMESET_BUSY                      52//50
+#define ROTOR_TIMESET_BUSY                      58//50
 #define ROTOR_TIMESET_BUSY_FAST                 1
 #define ROTOR_TIMESET_COOLING                   0
 #define ROTOR_TIMESET_RESERVE                   80 //80 30
@@ -52,7 +52,7 @@
 #define ROTOR_UNABLE_KD                         0.0f
 fp32 ROTOR_UNABLE[3] = { ROTOR_UNABLE_KP, ROTOR_UNABLE_KI, ROTOR_UNABLE_KD };
 
-#define ROTOR_FORWARD_KP                       	120.0f//150f
+#define ROTOR_FORWARD_KP                       	130.0f//150f
 #define ROTOR_FORWARD_KI                        0.0f
 #define ROTOR_FORWARD_KD                        15.0f
 fp32 ROTOR_FORWARD[3] = { ROTOR_FORWARD_KP, ROTOR_FORWARD_KI, ROTOR_FORWARD_KD };
@@ -123,7 +123,7 @@ fp32 PITCH_ANGLE_RESET_POSITION[3] = { PITCH_ANGLE_RESET_POSITION_KP, PITCH_ANGL
 #define YAW_SPEED_MANUAL_OPERATE_KD             20.0f
 fp32 YAW_SPEED_MANUAL_OPERATE[3] = { YAW_SPEED_MANUAL_OPERATE_KP, YAW_SPEED_MANUAL_OPERATE_KI, YAW_SPEED_MANUAL_OPERATE_KD };
 //  YAW÷·Ω«∂»ª∑
-#define YAW_ANGLE_MANUAL_OPERATE_KP             38.1f//32.0f
+#define YAW_ANGLE_MANUAL_OPERATE_KP             39.1f//32.0f
 #define YAW_ANGLE_MANUAL_OPERATE_KI             0.0001f//0.015f,wyf:0.02
 #define YAW_ANGLE_MANUAL_OPERATE_KD             102.0f//22.0f
 fp32 YAW_ANGLE_MANUAL_OPERATE[3] = { YAW_ANGLE_MANUAL_OPERATE_KP, YAW_ANGLE_MANUAL_OPERATE_KI, YAW_ANGLE_MANUAL_OPERATE_KD };
@@ -190,12 +190,12 @@ fp32 PITCH_ANGLE_AIMBOT_RUNES[3] = { PITCH_ANGLE_AIMBOT_RUNES_KP, PITCH_ANGLE_AI
 
 #define AMMO_LEFT_SPEED_30MS_KP                 8.0f
 #define AMMO_LEFT_SPEED_30MS_KI                 0.0f
-#define AMMO_LEFT_SPEED_30MS_KD                 14.0f
+#define AMMO_LEFT_SPEED_30MS_KD                 6.0f
 fp32 AMMO_LEFT_SPEED_30MS[3] = { AMMO_LEFT_SPEED_30MS_KP, AMMO_LEFT_SPEED_30MS_KI, AMMO_LEFT_SPEED_30MS_KD };
 
-#define AMMO_RIGHT_SPEED_30MS_KP                5.5f
+#define AMMO_RIGHT_SPEED_30MS_KP                5.8f
 #define AMMO_RIGHT_SPEED_30MS_KI                0.0f
-#define AMMO_RIGHT_SPEED_30MS_KD                15.2f
+#define AMMO_RIGHT_SPEED_30MS_KD                5.2f
 fp32 AMMO_RIGHT_SPEED_30MS[3] = { AMMO_RIGHT_SPEED_30MS_KP, AMMO_RIGHT_SPEED_30MS_KI, AMMO_RIGHT_SPEED_30MS_KD };
 
 

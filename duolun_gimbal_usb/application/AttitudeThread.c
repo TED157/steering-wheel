@@ -25,7 +25,7 @@
 
 #include "QuaternionEKF.h"
 #define IMU_temp_PWM(pwm)  imu_pwm_set(pwm)                    //pwm¸ø¶¨
-float bias=0.0013099999f;
+float bias=0.00205000001f;//0.04375f;
 
 /**
   * @brief          control the temperature of bmi088
@@ -138,7 +138,7 @@ void AttitudeThread(void const *pvParameters)
     while (1)
     {
         AHRS_update(INS_quat, 0.001f, bmi088_real_data.gyro, bmi088_real_data.accel);
-        get_angle(QEKF_INS.q, INS_angle + INS_YAW_ADDRESS_OFFSET, INS_angle + INS_PITCH_ADDRESS_OFFSET, INS_angle + INS_ROLL_ADDRESS_OFFSET);
+        get_angle(QEKF_INS.q/*INS_quat*/, INS_angle + INS_YAW_ADDRESS_OFFSET, INS_angle + INS_PITCH_ADDRESS_OFFSET, INS_angle + INS_ROLL_ADDRESS_OFFSET);
 		//memcpy(INS_quat,QEKF_INS.q,sizeof(QEKF_INS.q));
 		//        IMU_Timer = GetSystemTimer();
 //        CanSendMessage(&COMMUNICATE_CANPORT, IMU_PACKET_TIME_ID, 4, (uint8_t *)&IMU_Timer);

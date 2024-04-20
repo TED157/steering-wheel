@@ -43,6 +43,7 @@ uint8_t time_flag=0;
 
 uint8_t flah;
 uint8_t ammo_speed_ad_flag=0;
+uint8_t rune_shoot_flag=0;
 extern CAN_HandleTypeDef hcan1;
 extern CAN_HandleTypeDef hcan2;
 extern DMA_HandleTypeDef hdma_spi1_rx;
@@ -133,7 +134,8 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
         {
             RefereeAmmoSpeedNode0OfflineCounterUpdate();
             RefereeAmmoSpeedNode0InformationUpdate(rx_data);
-			DMA_printf("%f\r\n",Referee.Ammo0Speed);
+			if(Aimbot.AimbotState==3 && Gimbal.ControlMode==GM_AIMBOT_RUNES)
+				rune_shoot_flag=1;
 			ammo_speed_ad_flag=1;
             break;
         }
@@ -348,6 +350,13 @@ void TimerTaskLoop1000Hz(void)
 //		RefereeUsbSend();
 //		time_flag=0;
 //	}
+//	if(Aimbot.AimbotState==3&&ammo_speed_ad_flag==1){
+//		Aimbot.AimbotState=0;
+//		DMA_printf("%d\n",SystemTimer);
+//	}
+//	else{
+//		DMA_printf("\n");
+//	}
 }
 
 
@@ -356,6 +365,11 @@ void TimerTaskLoop500Hz(void)
 {
     //GimbalImuPacketSend();
 	GimbalImuSend();
+	if(rune_shoot_flag==1)
+	{
+		Aimbot.AimbotState=0;
+		rune_shoot_flag=0;
+	}
 }
 
 
