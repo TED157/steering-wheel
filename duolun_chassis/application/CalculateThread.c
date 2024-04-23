@@ -506,6 +506,7 @@ void chassis_limit_update(void)
 	}
 }
 
+uint8_t cms_flag=0;
 float Plimit = 0;
 uint8_t chassis_powerloop(Chassis_t *Chassis)
 {
@@ -540,24 +541,21 @@ uint8_t chassis_powerloop(Chassis_t *Chassis)
 	if (CMS_Data.cms_cap_v <= 15 || cms_offline_counter > 500 || power_heat_data_t.buffer_energy<50)
 	{
 		power_flag = 0;
+		cms_flag=0;
 	}
 
 	if (CMS_Data.TxOpen==1)
 	{
 		Power_Max += 30;
+		cms_flag=1;
 	}
-    if(power_flag == 0 && CMS_Data.TxOpen!=1){
-		if (power_heat_data_t.buffer_energy > 58)
-			
-		{
-			Plimit = 0.01;
-		}
-		if (power_heat_data_t.buffer_energy < 40 && power_heat_data_t.buffer_energy >= 35)
+    if(power_flag == 0){
+		if (power_heat_data_t.buffer_energy < 40 && power_heat_data_t.buffer_energy >= 35 && cms_flag==0)
 			
 		{
 			Plimit = 0.45;
 		}
-		else if (power_heat_data_t.buffer_energy < 35 && power_heat_data_t.buffer_energy >= 30)
+		else if (power_heat_data_t.buffer_energy < 35 && power_heat_data_t.buffer_energy >= 30 && cms_flag==0)
 		{
 			Plimit = 0.4;
 			//power_scale = (Power_Max-2) / lijupower;
@@ -568,7 +566,7 @@ uint8_t chassis_powerloop(Chassis_t *Chassis)
 			//power_scale = (Power_Max-2) / lijupower;
 			
 		}
-		else if (power_heat_data_t.buffer_energy < 20 && power_heat_data_t.buffer_energy >= 10)
+		else if (power_heat_data_t.buffer_energy < 20 && power_heat_data_t.buffer_energy >= 10 && cms_flag==0)
 		{
 			Plimit = 0.1;
 			//power_scale = (Power_Max-2) / lijupower;
@@ -584,7 +582,7 @@ uint8_t chassis_powerloop(Chassis_t *Chassis)
 			//power_scale = 1;
 		}
 	}
-	if (lijupower > Power_Max && power_flag == 0 && CMS_Data.TxOpen!=1)
+	if (lijupower > Power_Max && power_flag == 0)
 	{
 		power_scale = (Power_Max-2) / lijupower;
 		Chassis->Current[0] *= (power_scale) * (Plimit);
