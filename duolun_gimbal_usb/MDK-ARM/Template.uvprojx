@@ -893,9 +893,14 @@
               <FilePath>..\device\Usb.c</FilePath>
             </File>
             <File>
-              <FileName>Usb.h</FileName>
+              <FileName>Fs_remote.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\device\Fs_remote.c</FilePath>
+            </File>
+            <File>
+              <FileName>Fs_remote.h</FileName>
               <FileType>5</FileType>
-              <FilePath>..\device\Usb.h</FilePath>
+              <FilePath>..\device\Fs_remote.h</FilePath>
             </File>
           </Files>
         </Group>

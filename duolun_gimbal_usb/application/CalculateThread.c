@@ -81,6 +81,7 @@ uint8_t pitch_flag=0;
 float ammo_speed_l=AMMO_SPEEDSET_30MS_L;
 float ammo_speed_r=AMMO_SPEEDSET_30MS_R;
 extern uint8_t ammo_speed_ad_flag;
+extern uint8_t rune_shoot_flag;
 uint16_t shoot_delay=0;
 void CalculateThread(void const * pvParameters)
 {
@@ -342,7 +343,8 @@ void GimbalFireModeUpdate(void)
         if (Gimbal.FireMode==GM_FIRE_READY) 
 				{						
 						if((SHOOT_COMMAND_KEYMAP)//收到操作手发弹指令
-							&&(((Gimbal.ControlMode==GM_AIMBOT_OPERATE||Gimbal.ControlMode==GM_AIMBOT_RUNES)&&((Aimbot.AimbotState & 0x02) != 0)&&auto_fire_flag==1)//自动开火
+							&&((Gimbal.ControlMode==GM_AIMBOT_RUNES&&((Aimbot.AimbotState & 0x02) != 0)&&auto_fire_flag==1&&rune_shoot_flag==1)
+								||(Gimbal.ControlMode==GM_AIMBOT_OPERATE&&((Aimbot.AimbotState & 0x02) != 0)&&auto_fire_flag==1)//自动开火
 						        ||((Gimbal.ControlMode==GM_AIMBOT_OPERATE||Gimbal.ControlMode==GM_AIMBOT_RUNES)&&auto_fire_flag==0)//无自动开火
 								||((Gimbal.ControlMode==GM_MANUAL_OPERATE&&Remote.mouse.press_r!=PRESS)||auto_fire_flag==0))//手动开火
 									&&((count*10<=Referee.Ammo0Limit.Cooling+onelastheat&&dealta_heat>10)||Referee.Ammo0Limit.Heat==0xFFFF)	)//且热量闭环允许 

@@ -19,7 +19,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "usart.h"
-
+#include "bsp_usart.h"
 /* USER CODE BEGIN 0 */
 
 /* USER CODE END 0 */
@@ -106,7 +106,11 @@ void MX_USART6_UART_Init(void)
   huart6.Instance = USART6;
   huart6.Init.BaudRate = 115200;
   huart6.Init.WordLength = UART_WORDLENGTH_8B;
+#if REMOTE_UART6==1
+  huart6.Init.StopBits = UART_STOPBITS_2;
+#else
   huart6.Init.StopBits = UART_STOPBITS_1;
+#endif
   huart6.Init.Parity = UART_PARITY_NONE;
   huart6.Init.Mode = UART_MODE_TX_RX;
   huart6.Init.HwFlowCtl = UART_HWCONTROL_NONE;

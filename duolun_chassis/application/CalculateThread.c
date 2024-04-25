@@ -254,9 +254,10 @@ void ChassisCommandUpdate()
 			else if(angle_minus<-180) angle_minus+=360;
 			Chassis.vx = ((PTZ.FBSpeed / 32767.0f) * cos(angle_minus/180.0*PI) - (PTZ.LRSpeed / 32767.0f) * sin(angle_minus/180.0*PI)) * (v_gain );
 			Chassis.vy =  ((PTZ.FBSpeed / 32767.0f) * sin(angle_minus/180.0*PI) + (PTZ.LRSpeed / 32767.0f) * cos(angle_minus/180.0*PI)) * (v_gain );
-//			if(Chassis.vx*Chassis.vy !=0)  follow.max_out=0.9;
-//			else follow.max_out=2;
 			Chassis.wz = -PID_calc(&follow,YawMotorMeasure.angle,follow_angle); //* (1.0f + Chassis.Power_Proportion /Power_Max );
+			if(Fabs(Chassis.wz)<0.2*v_gain&&Fabs(angle_minus)<0.5){
+				Chassis.wz=0.01*Chassis.wz/Fabs(Chassis.wz);
+			}
 			//Chassis.wz = -1;
 		}
 		else if (Chassis.Mode == ROTING)
@@ -298,7 +299,8 @@ void ChassisCommandUpdate()
 		{
 			if(stop_flag==1 && Chassis.Mode==FALLOW)
 			{
-				stop_countdown=200;
+				stop_countdown=Power_Max*2.5;
+				if(CMS_Data.TxOpen==1) stop_countdown*=2;
 				stop_flag=2;
 			}
 			if(stop_countdown>0 && Chassis.Mode==FALLOW)

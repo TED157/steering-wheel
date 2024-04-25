@@ -122,6 +122,10 @@ typedef __PACKED_STRUCT
 	//自瞄目标角速度
     fp32 TargetPitchSpeed;
     fp32 TargetYawSpeed;
+	//目标相机系下2d位置
+	fp32 TargetX;
+	fp32 TargetY;
+	//时间戳
     uint32_t SystemTimer;
     // 包尾
     uint8_t _EOF;

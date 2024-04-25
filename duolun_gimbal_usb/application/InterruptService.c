@@ -23,6 +23,7 @@
 #include "UsbPackage.h"
 #include "Usb.h"
 #include "bsp_usart.h"
+#include "Fs_remote.h"
 #define UART_printf(...)  HAL_UART_Transmit(&huart1,\
 																				(uint8_t  *)u1_buf,\
 																				sprintf((char*)u1_buf,__VA_ARGS__),0x120)
@@ -43,7 +44,8 @@ uint8_t time_flag=0;
 
 uint8_t flah;
 uint8_t ammo_speed_ad_flag=0;
-uint8_t rune_shoot_flag=0;
+uint8_t rune_shoot_flag=1;
+uint8_t time_period_rune=0;
 extern CAN_HandleTypeDef hcan1;
 extern CAN_HandleTypeDef hcan2;
 extern DMA_HandleTypeDef hdma_spi1_rx;
@@ -134,8 +136,8 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
         {
             RefereeAmmoSpeedNode0OfflineCounterUpdate();
             RefereeAmmoSpeedNode0InformationUpdate(rx_data);
-			if(Aimbot.AimbotState==3 && Gimbal.ControlMode==GM_AIMBOT_RUNES)
-				rune_shoot_flag=1;
+			if(Gimbal.ControlMode==GM_AIMBOT_RUNES)
+				rune_shoot_flag=0;
 			ammo_speed_ad_flag=1;
             break;
         }
@@ -310,7 +312,85 @@ void USART1_IRQHandler(void)
 
   /* USER CODE END USART1_IRQn 1 */
 }
+//串口中断
+void USART6_IRQHandler(void)
+{
+    if (huart6.Instance->SR & UART_FLAG_RXNE)//接收到数据
+    {
+        __HAL_UART_CLEAR_PEFLAG(&huart6);
+    }
+    else if (USART6->SR & UART_FLAG_IDLE)
+    {
+        static uint16_t this_time_rx_len = 0;
 
+        __HAL_UART_CLEAR_PEFLAG(&huart6);
+
+        if ((hdma_usart6_rx.Instance->CR & DMA_SxCR_CT) == RESET)
+        {
+            /* Current memory buffer used is Memory 0 */
+
+            //disable DMA
+            //失效DMA
+            __HAL_DMA_DISABLE(&hdma_usart6_rx);
+
+            //get receive data length, length = set_data_length - remain_length
+            //获取接收数据长度,长度 = 设定长度 - 剩余长度
+            this_time_rx_len = SBUS_RX_BUF_NUM - hdma_usart6_rx.Instance->NDTR;
+
+            //reset set_data_lenght
+            //重新设定数据长度
+            hdma_usart6_rx.Instance->NDTR = SBUS_RX_BUF_NUM;
+
+            //set memory buffer 1
+            //设定缓冲区1
+            hdma_usart6_rx.Instance->CR |= DMA_SxCR_CT;
+            
+            //enable DMA
+            //使能DMA
+            __HAL_DMA_ENABLE(&hdma_usart6_rx);
+
+            if (this_time_rx_len == RC_FRAME_LENGTH)
+            {
+                //处理遥控器数据
+                ibus_to_rc(0);
+                //记录数据接收时间
+                RemoteOfflineCounterUpdate();
+            }
+        }
+        else
+        {
+            /* Current memory buffer used is Memory 1 */
+            //disable DMA
+            //失效DMA
+            __HAL_DMA_DISABLE(&hdma_usart6_rx);
+
+            //get receive data length, length = set_data_length - remain_length
+            //获取接收数据长度,长度 = 设定长度 - 剩余长度
+            this_time_rx_len = SBUS_RX_BUF_NUM - hdma_usart6_rx.Instance->NDTR;
+
+            //reset set_data_lenght
+            //重新设定数据长度
+            hdma_usart6_rx.Instance->NDTR = SBUS_RX_BUF_NUM;
+
+            //set memory buffer 0
+            //设定缓冲区0
+            DMA1_Stream1->CR &= ~(DMA_SxCR_CT);
+            
+            //enable DMA
+            //使能DMA
+            __HAL_DMA_ENABLE(&hdma_usart6_rx);
+
+            if (this_time_rx_len == RC_FRAME_LENGTH)
+            {
+                //处理遥控器数据
+                ibus_to_rc(1);
+                //记录数据接收时间
+                RemoteOfflineCounterUpdate();
+            }
+        }
+    }
+
+}
 /** 
   * @brief This function handles TIM3 global interrupt.
   */
@@ -341,22 +421,7 @@ void TimerTaskLoop1000Hz(void)
     if ((RefereeInterpolationTimer % 100) == 0) {
         AmmoHeatSettlementInterpolation();
     }
-//    time_flag++;
-//	if(time_flag==1)
-//	{
-//		GimbalImuSend();
-//	}
-//	else if(time_flag==2){
-//		RefereeUsbSend();
-//		time_flag=0;
-//	}
-//	if(Aimbot.AimbotState==3&&ammo_speed_ad_flag==1){
-//		Aimbot.AimbotState=0;
-//		DMA_printf("%d\n",SystemTimer);
-//	}
-//	else{
-//		DMA_printf("\n");
-//	}
+
 }
 
 
@@ -365,20 +430,21 @@ void TimerTaskLoop500Hz(void)
 {
     //GimbalImuPacketSend();
 	GimbalImuSend();
-	if(rune_shoot_flag==1)
-	{
-		Aimbot.AimbotState=0;
-		rune_shoot_flag=0;
-	}
 }
 
 
 void TimerTaskLoop100Hz(void)
 {
-    //GimbalImuPacketSend();
+	if(!rune_shoot_flag){
+		time_period_rune++;}
+	if(time_period_rune==40)
+	{
+		rune_shoot_flag=1;
+	}
+	//GimbalImuPacketSend();
 	//UART_printf("%f,%f\n",Gimbal.MotorMeasure.ShootMotor.AmmoLeftMotorSpeed,Gimbal.MotorMeasure.ShootMotor.AmmoRightMotorSpeed);
 }
-uint8_t a=0;
+
 void TimerTaskLoop100Hz_1(void)
 {
 	//usart1_tx_dma_enable((uint8_t*)"1\n",2);
