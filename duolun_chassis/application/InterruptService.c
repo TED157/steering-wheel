@@ -42,6 +42,7 @@ uint16_t right_counter = 0;
 uint16_t feet_left_counter = 0;
 uint16_t feet_right_counter = 0;
 uint16_t cms_offline_counter = 0;
+int16_t coords[2];
 extern uint32_t F_Motor[8];
 OfflineCounter_t OfflineCounter;
 OfflineMonitor_t OfflineMonitor;
@@ -138,7 +139,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 		{
 			case YawMotorId:
 			{
-			//MotorProcess(rx_header.StdId,hcan,rx_data);
+			    //MotorProcess(rx_header.StdId,hcan,rx_data);
 				get_motor_measure(&YawMotorMeasure,rx_data);
 			break;
 			}
@@ -148,27 +149,19 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 				memcpy(&Aim,rx_data,sizeof(Aim_t));
 				break;
 			}
-			case SentryAimStatusAndTargetId:
-			{
-				break;//哨兵相关，暂时不管
-			}
 			case DefaulPTZRequestAndStatusId:
 			{
 				OfflineCounter.PTZnode = 0;
 				memcpy(&PTZ,rx_data,sizeof(PTZ_t));
 				break;
 			}
-			case SentryPTZRequestAndStatusId:
-			{
-				break;//哨兵相关，不管
-			}
 			case CMSRecceiveID:
 			{
 				cms_offline_counter = 0;
-				int16_t p = ((uint16_t)rx_data[2] << 8| rx_data[3]);
+				//int16_t p = ((uint16_t)rx_data[2] << 8| rx_data[3]);
 				int16_t v = ((uint16_t)rx_data[0] << 8| rx_data[1]);
-				CMS_Data.cms_cap_p = int16_to_float(p,32000, -32000,500, 0);
-				CMS_Data.cms_cap_v = int16_to_float(v,32000, -32000,30, 0);
+				//CMS_Data.cms_cap_p = int16_to_float(p,32000, -32000,500, 0);
+				CMS_Data.cms_cap_v = int16_to_float(v,32000, -32000,30, 1);
 				CMS_Data.cms_status = ((uint16_t)rx_data[4] << 8| rx_data[5]);
 				break;
 			}
@@ -278,19 +271,12 @@ void TimerTaskLoop500Hz_2()
 void TimerTaskLoop100Hz()
 {
 	CMS_BUFFER_SEND(power_heat_data_t.buffer_energy);
-	cms_send_period++;
-	if (cms_send_period>=2)
-	{
-		cms_send_period=0;
-		CMS_POWER_SEND(robot_state.chassis_power_limit,300,150,1);
-	}
+	cms_send_period=0;
+	CMS_POWER_SEND(robot_state.chassis_power_limit,300,150,1);
 	uint8_t message[2];
 	message[0]=robot_state.chassis_power_limit>>8;
 	message[0]=robot_state.chassis_power_limit;
-	if(chassis_limit_update_flag)
-	{
-		CanSendMessage(&hcan1,0x128,2,message);
-	}
+	DMA_printf("%f\r\n",Chassis.Motor3508[0].speed);
 }
 
 
@@ -306,6 +292,8 @@ void CommuniteOfflineCounterUpdate(void)
 	OfflineCounter.Motor[5]++;
 	OfflineCounter.Motor[6]++;
 	OfflineCounter.Motor[7]++;
+	
+	//OfflineCounter.Coords++;
 	
 	OfflineCounter.PTZnode++;
 }
@@ -328,7 +316,14 @@ void CommuniteOfflineStateUpdate(void)
 		OfflineMonitor.PTZnode = 1;
 	else 
 		OfflineMonitor.PTZnode = 0;
-    
+//    if(OfflineCounter.Coords > COORDS_TIMEMAX)
+//	{
+//		OfflineMonitor.Coords=1;
+//	}
+//	else
+//	{
+//		OfflineMonitor.Coords=0;
+//	}
 }
 
 void DeviceOfflineMonitorUpdate(OfflineMonitor_t *Monitor)

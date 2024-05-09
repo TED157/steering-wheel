@@ -10,6 +10,7 @@ typedef struct
     
     // CAN Bus Node
     uint32_t PTZnode;
+	uint32_t Coords;
     
 } OfflineCounter_t;
 
@@ -19,7 +20,7 @@ typedef struct
     uint8_t Motor[8];
 	//Can bus noode
     uint8_t PTZnode;
-    
+    uint8_t Coords;
 } OfflineMonitor_t;
 
 

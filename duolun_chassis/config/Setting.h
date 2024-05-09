@@ -12,6 +12,7 @@
 #define AIMBOT_OFFLINE_TIMEMAX  550
 #define REFEREE_OFFLINE_TIMEMAX 3000
 #define PTZ_OFFLINE_TIMEMAX     50
+#define COORDS_TIMEMAX          200
 
 #define PARAMETER_FILE "Setting.h"
 
@@ -32,13 +33,13 @@
 
 #define YawMotorId                                     	0x205
 
-#define FollowAngle              						-158.6f//26.134f
+#define FollowAngle              						-158.244415f//26.134f
 
 
 
-#define FOLLOW_KP						0.101f
+#define FOLLOW_KP						0.104f
 #define FOLLOW_KI						0.0f
-#define FOLLOW_KD						6.5f
+#define FOLLOW_KD						2.55f
 
 
 
@@ -46,15 +47,15 @@
 #define TURN_KI							0.0f//0.0f
 #define TURN_KD							0.0f//50000.0f
  
-#define SPEED_6020_KP							110.0f
+#define SPEED_6020_KP							140.0f
 #define SPEED_6020_KI							0.0f
-#define SPEED_6020_KD							1.0f
+#define SPEED_6020_KD							0.0f
 
-#define POSITION_6020_KP                        4.0f
+#define POSITION_6020_KP                        4.2f
 #define POSITION_6020_KI                        0.0f
-#define POSITION_6020_KD                        0.1f
+#define POSITION_6020_KD                        0.10f
 
-#define speed_3508_KP							3100.0f
+#define speed_3508_KP							3600.0f
 #define speed_3508_KI							0.0f
 #define speed_3508_KD							0.0f
 

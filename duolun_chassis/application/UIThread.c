@@ -61,13 +61,17 @@ String_Data Ammo,Heat,aimbot,autofire,Mode,close1,open1,open2,close2,open3,close
 String_Data capcity;
 String_Data rune;
 Float_Data CapData;
+Graph_Data Cap_TX;
+Graph_Data Coords;
 int mode_flag=0;
 uint8_t count=0,count2=0;
 extern float CapChageVoltage;
 extern EulerSystemMeasure_t    Imu;
 extern DMA_HandleTypeDef hdma_usart6_tx;
+extern int16_t coords[2];
 ChassisMode_e mode=NOFORCE;
 uint8_t fire_mode,shoot_mode,cover_mode,aim_mode,match_mode;
+uint8_t coords_flag=0;
 uint8_t mode_change_flag;//bit 0-7 底盘模式,自动开火，单双发，弹舱盖开合，打击对象
 void UISendTask(void const * argument)
 {
@@ -256,10 +260,36 @@ void UI(void const * argument)
 			match_mode=0x00;
 		}
 
-		Float_Draw(&CapData,"cpd",UI_Graph_Change,0,UI_Color_Yellow,20,5,2,920,158,CMS_Data.cms_cap_v*1000);
+		if(PTZ.AimTargetRequest & 0x08)
+		{
+			if(coords_flag==0){
+				Circle_Draw(&Coords,"coo",UI_Graph_ADD,0,UI_Color_Cyan,10,225+coords[0],800-coords[1],6);
+				coords_flag=1;
+			}
+			if(coords_flag){
+				Circle_Draw(&Coords,"coo",UI_Graph_Change,0,UI_Color_Cyan,10,225+coords[0],800-coords[1],6);
+			}
+		}
+		else{
+			if(coords_flag){
+				Circle_Draw(&Coords,"coo",UI_Graph_Del,0,UI_Color_Cyan,10,225+coords[0],800-coords[1],6);
+				coords_flag=2;
+			}
+		}
+		if(CMS_Data.TxOpen==0)
+			Float_Draw(&CapData,"cpd",UI_Graph_Change,0,UI_Color_White,20,5,2,920,158,CMS_Data.cms_cap_v*1000);
+		else
+			Float_Draw(&CapData,"cpd",UI_Graph_Change,0,UI_Color_Yellow,20,5,2,920,158,CMS_Data.cms_cap_v*1000);
+		
 		if(count2==0)
 		{			
-			UI_ReFresh(1,CapData);
+			if((PTZ.AimTargetRequest & 0x08) || coords_flag==2){
+				UI_ReFresh(2,CapData,Coords);
+				if(coords_flag==2) coords_flag=0;
+			}
+			else{
+				UI_ReFresh(1,CapData);
+			}
 		}
 		mode_change_flag=0x00;
 		//模式切换检测

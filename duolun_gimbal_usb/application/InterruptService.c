@@ -39,13 +39,10 @@ extern RefereeInformation_t    Referee;
 
 fp32 speed;
 
-uint8_t time_flag=0;
-
-
-uint8_t flah;
+uint8_t prescaler;
 uint8_t ammo_speed_ad_flag=0;
-uint8_t rune_shoot_flag=1;
-uint8_t time_period_rune=0;
+uint8_t rune_shoot_flag=0;
+uint16_t time_period_rune=0;
 extern CAN_HandleTypeDef hcan1;
 extern CAN_HandleTypeDef hcan2;
 extern DMA_HandleTypeDef hdma_spi1_rx;
@@ -136,9 +133,8 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
         {
             RefereeAmmoSpeedNode0OfflineCounterUpdate();
             RefereeAmmoSpeedNode0InformationUpdate(rx_data);
-			if(Gimbal.ControlMode==GM_AIMBOT_RUNES)
-				rune_shoot_flag=0;
 			ammo_speed_ad_flag=1;
+			rune_shoot_flag=2;
             break;
         }
         case REFEREE_AMMO_SPEED_NODE_1_ID:
@@ -441,6 +437,18 @@ void TimerTaskLoop100Hz(void)
 	{
 		rune_shoot_flag=1;
 	}
+	if(prescaler==20){
+		prescaler=0;
+		int16_t coords[2]={0};
+		if(Aimbot.TargetX-(int)(Aimbot.TargetX)>0.5)
+			Aimbot.TargetX+=0.5;
+		if(Aimbot.TargetY-(int)(Aimbot.TargetY)>0.5)
+			Aimbot.TargetY+=0.5;
+		coords[0]=(Aimbot.TargetX);
+		coords[1]=(Aimbot.TargetY-1100.2);
+		CanSendMessage(&hcan1,AIMBOT_POSITION_ID,4,(uint8_t *)coords);
+	}	
+	prescaler++;
 	//GimbalImuPacketSend();
 	//UART_printf("%f,%f\n",Gimbal.MotorMeasure.ShootMotor.AmmoLeftMotorSpeed,Gimbal.MotorMeasure.ShootMotor.AmmoRightMotorSpeed);
 }

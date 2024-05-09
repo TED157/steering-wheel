@@ -25,7 +25,7 @@
 
 #include "QuaternionEKF.h"
 #define IMU_temp_PWM(pwm)  imu_pwm_set(pwm)                    //pwm¸ø¶¨
-float bias=0.00205000001f;//0.04375f;
+float bias=-0.000600000028f;//0.04375f;
 
 /**
   * @brief          control the temperature of bmi088
@@ -272,6 +272,7 @@ void GimbalEulerSystemMeasureUpdate(EulerSystemMeasure_t *IMU)
 void AHRS_update(fp32 quat[4], fp32 time, fp32 gyro[3], fp32 accel[3])
 {
     MahonyAHRSupdate(quat, -gyro[2], gyro[1], gyro[0], -accel[2], accel[1], accel[0], 0, 0, 0);
+	IMU_QuaternionEKF_Update(-gyro[2], gyro[1], gyro[0]+bias, -accel[2], accel[1], accel[0],0.001f);
 }
 void GimbalEulerSystemMeasureUpdate(EulerSystemMeasure_t *IMU)
 {

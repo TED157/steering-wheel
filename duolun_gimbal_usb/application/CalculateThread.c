@@ -9,7 +9,7 @@
 #include "RefereeCan.h"
 #include "tim.h"
 #include "bsp_can.h"
-//#include "stdio.h"
+#include "stdio.h"
 #include "loop_fifo.h"
 #include "usart.h"
 #include "cmsis_os.h"
@@ -22,10 +22,13 @@
 #include PARAMETER_FILE
 #include KEYMAP_FILE
 uint8_t resul=0;
-//#define printf(...)  HAL_UART_Transmit_DMA(&huart6,\
-//																				(uint8_t  *)u1_buf,\
-//																				sprintf((char*)u1_buf,__VA_ARGS__))
-//uint8_t u1_buf[30];
+extern DMA_HandleTypeDef hdma_usart1_tx;
+#define DMA_printf(...)      __HAL_DMA_DISABLE(&hdma_usart1_tx);\
+																				HAL_UART_Transmit_DMA(&huart1,\
+																				(uint8_t  *)u1_buf,\
+																				sprintf((char*)u1_buf,__VA_ARGS__))
+extern uint8_t u1_buf[30];
+
 Gimbal_t                Gimbal;//云台状态结构
 Chassis_t               Chassis;//底盘状态
 RC_ctrl_t               Remote;//遥控器数据
@@ -115,8 +118,9 @@ void CalculateThread(void const * pvParameters)
         GimbalCommandUpdate();//指令的转换
         ChassisCommandUpdate();//底盘指令转换
         RotorCommandUpdate();//拨盘控制转换
-		if(ammo_speed_ad_flag==1){
-			ShootSpeedAdopt();
+		if(ammo_speed_ad_flag==2){
+			//ShootSpeedAdopt();
+			//ammo_speed_ad_flag=0;
 			}//摩擦轮速度调整
         AmmoCommandUpdate();//发射部分控制转化
 		
@@ -298,7 +302,7 @@ void GimbalFireModeUpdate(void)
         auto_fire_flag=(auto_fire_flag+1)%2;   
 	
 		//单发开关,key B
-	  if(BIG_RUNE_KEYMAP&&((Remote.mouse.press_r==PRESS)||(Remote.rc.s[1]==RC_SW_UP)))
+	  if(BIG_RUNE_KEYMAP&&((Remote.mouse.press_r==PRESS)||(Remote.rc.s[1]==RC_SW_UP))) 
 	{
 		small_rune_flag = 0;
 		 big_rune_flag=1;//=(big_rune_flag+1)%2; 
@@ -313,7 +317,7 @@ void GimbalFireModeUpdate(void)
 		small_rune_flag = 0;
 		 big_rune_flag=0;
 	}
-	  if( big_rune_flag|| small_rune_flag){
+	  if( (big_rune_flag|| small_rune_flag)&&(Gimbal.StateMachine==GM_MATCH||Gimbal.StateMachine==GM_TEST)){
 		  single_shoot_flag = 1;
 		  Gimbal.ControlMode = GM_AIMBOT_RUNES;
 	  }
@@ -343,28 +347,34 @@ void GimbalFireModeUpdate(void)
         if (Gimbal.FireMode==GM_FIRE_READY) 
 				{						
 						if((SHOOT_COMMAND_KEYMAP)//收到操作手发弹指令
-							&&((Gimbal.ControlMode==GM_AIMBOT_RUNES&&((Aimbot.AimbotState & 0x02) != 0)&&auto_fire_flag==1&&rune_shoot_flag==1)
+							&&((Gimbal.ControlMode==GM_AIMBOT_RUNES&&((Aimbot.AimbotState & 0x02) != 0)&&auto_fire_flag==1)
 								||(Gimbal.ControlMode==GM_AIMBOT_OPERATE&&((Aimbot.AimbotState & 0x02) != 0)&&auto_fire_flag==1)//自动开火
 						        ||((Gimbal.ControlMode==GM_AIMBOT_OPERATE||Gimbal.ControlMode==GM_AIMBOT_RUNES)&&auto_fire_flag==0)//无自动开火
 								||((Gimbal.ControlMode==GM_MANUAL_OPERATE&&Remote.mouse.press_r!=PRESS)||auto_fire_flag==0))//手动开火
 									&&((count*10<=Referee.Ammo0Limit.Cooling+onelastheat&&dealta_heat>10)||Referee.Ammo0Limit.Heat==0xFFFF)	)//且热量闭环允许 
-						{
-								Gimbal.FireMode=GM_FIRE_BUSY;									
+						{	
+							//DMA_printf("%d\n",GetSystemTimer());
+							rune_shoot_flag=0;
+							Gimbal.FireMode=GM_FIRE_BUSY;									
 								gimbal_fire_countdown=ROTOR_TIMESET_BUSY;
 								if(Gimbal.ControlMode==GM_AIMBOT_RUNES)
-									gimbal_fire_countdown=42;
+									gimbal_fire_countdown=57;
 								count++;
 						}
         }
 				if(Gimbal.FireMode==GM_FIRE_BUSY&&gimbal_fire_countdown<=0)
 				{
 						if(single_shoot_flag==1||Offline.RefereeAmmoLimitNode0==1)
-								gimbal_fire_countdown=48;//time interval
+								gimbal_fire_countdown=450;//time interval
 						else 
 								gimbal_fire_countdown=(int)(10000.0/(dealta_heat/1.7+Referee.Ammo0Limit.Cooling/2.0+5)-45);
 						Gimbal.FireMode=GM_FIRE_COOLING; //no shoot
 				}
-
+				if(Gimbal.FireMode==GM_FIRE_COOLING && gimbal_fire_countdown>0  && gimbal_fire_countdown<280 && rune_shoot_flag<1 && Gimbal.ControlMode==GM_AIMBOT_RUNES)
+				{	gimbal_fire_countdown=57;
+					Gimbal.FireMode=GM_FIRE_BUSY;
+					rune_shoot_flag++;
+				}
 				if(Gimbal.FireMode==GM_FIRE_COOLING&&gimbal_fire_countdown<=0) 
 						Gimbal.FireMode=GM_FIRE_READY;    
 				
@@ -695,7 +705,16 @@ void AmmoCommandUpdate(void)
                                         Gimbal.MotorMeasure.ShootMotor.AmmoRightMotorSpeed, 
                                         ammo_speed_r * AMMO_RIGHT_MOTOR_DIRECTION
                                         );
-    
+//    if(Gimbal.StateMachine != GM_MATCH){
+//		Gimbal.Output.AmmoLeft = PID_calc(  &Gimbal.Pid.AmmoLeft,
+//                                        Gimbal.MotorMeasure.ShootMotor.AmmoLeftMotorSpeed, 
+//                                        0
+//                                      );
+//    Gimbal.Output.AmmoRight = PID_calc( &Gimbal.Pid.AmmoRight, 
+//                                        Gimbal.MotorMeasure.ShootMotor.AmmoRightMotorSpeed, 
+//                                        0
+//                                        );
+//	}
     
 }
 
@@ -763,6 +782,14 @@ void GetGimbalRequestState(GimbalRequestState_t *RequestState)
 	
 	GimabalImu.mode =0x00;
     RequestState->AimbotRequest = 0x00;
+	if(Gimbal.StateMachine==GM_MATCH||Gimbal.StateMachine==GM_TEST)
+	{
+     // 如果按下鼠标右键or s[1]=1并且视觉发现目标，进入自瞄控制
+		if(((Remote.mouse.press_r==PRESS)||(Remote.rc.s[1]==RC_SW_UP)))
+		{
+			GimabalImu.mode |= (uint8_t)(1 << 0);
+		}
+	}
 	if(small_rune_flag){		
 		RequestState->AimbotRequest |= (uint8_t)(1 << 4);
 		GimabalImu.mode |= (uint8_t)(1 << 3);
@@ -771,7 +798,7 @@ void GetGimbalRequestState(GimbalRequestState_t *RequestState)
 		RequestState->AimbotRequest |= (uint8_t)(1 << 5);
 		GimabalImu.mode |= (uint8_t)(1 << 2);
 	}
-	else{
+	else if(Gimbal.ControlMode==GM_AIMBOT_OPERATE){
 		RequestState->AimbotRequest |= (uint8_t) (1 << 0);
 		GimabalImu.mode |= (uint8_t)(1 << 1);
 	}
@@ -981,7 +1008,6 @@ void ShootSpeedAdopt(void)
 	ammo_speed_r = ammo_speed_r - shoot_adot * 10;
 	}
 	if(shoot_adot>2) shoot_adot=0;
-	ammo_speed_ad_flag=0;
 	if(ammo_speed_l<7000) ammo_speed_l=7000;
 	else if(ammo_speed_l>7800) ammo_speed_l=7800;
 	if(ammo_speed_r<7000) ammo_speed_r=7000;
