@@ -5,7 +5,7 @@
 #define REMOTE_OFFLINE_TIMEMAX  550
 #define AIMBOT_OFFLINE_TIMEMAX  550
 #define REFEREE_OFFLINE_TIMEMAX 3000
-
+#define FT_REMOTE_OFFLINE_TIMEMAX  200
 
 
 //#define HERO1
@@ -65,7 +65,7 @@
 // 键位配置文件
 #define KEYMAP_FILE "Infantry4KeyMap.h"
 // imu安装方向
-#define IMU_DIRECTION_yrxz_XYZ
+#define IMU_DIRECTION_rzyx_XYZ
 // gyro yaw轴偏置
 #define GYRO_YAW_BIAS -0.0019f//-0.00770,-0.01065f,INCREASE
 // 主发射机构类型
@@ -84,12 +84,12 @@
 #define YAW_MOTOR_DIRECTION         1
 #define PITCH_MOTOR_DIRECTION       -1
 #define ROTOR_MOTOR_DIRECTION       1
-#define AMMO_LEFT_MOTOR_DIRECTION   1
-#define AMMO_RIGHT_MOTOR_DIRECTION  -1
+#define AMMO_LEFT_MOTOR_DIRECTION   -1
+#define AMMO_RIGHT_MOTOR_DIRECTION  1
 // 云台YAW轴零点和俯仰限幅
 #define YAW_ZERO_ECDANGLE           -2.5//180.0f-142.5f//21.4f
-#define PITCH_MIN_ANGLE             -27.5f//-27.0f//-24.0f//-26.0f
-#define PITCH_MAX_ANGLE             15.0f//15.0f
+#define PITCH_MIN_ANGLE             -20.0f//-27.0f//-24.0f//-26.0f
+#define PITCH_MAX_ANGLE             17.0f//15.0f
 // 默认摩擦轮速度
 #define DEFAULT_AMMOL_PID           AMMO_LEFT_SPEED_30MS
 #define DEFAULT_AMMOR_PID           AMMO_RIGHT_SPEED_30MS

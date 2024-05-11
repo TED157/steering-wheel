@@ -81,9 +81,9 @@ void GimbalMotorControl(int16_t YawMotor, int16_t PitchMotor, int16_t RotorMotor
 
 
 
-static motor_measure_t YawMotorMeasure;
-static motor_measure_t PitchMotorMeasure;
- motor_measure_t RotorMotorMeasure;
+motor_measure_t YawMotorMeasure;
+motor_measure_t PitchMotorMeasure;
+motor_measure_t RotorMotorMeasure;
 static motor_measure_t AmmoLeftMotorMeasure;
 static motor_measure_t AmmoRightMotorMeasure;
 

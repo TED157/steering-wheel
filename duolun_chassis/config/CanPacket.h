@@ -6,6 +6,10 @@
 #include "struct_typedef.h"
 #include "RefereeBehaviour.h"
 
+
+//自瞄目标相机下的坐标数据包
+#define AIMBOT_POSITION_ID                          0x141
+
 typedef enum
 {
 	DefaultAimStatusAndTargetId = 0x106,

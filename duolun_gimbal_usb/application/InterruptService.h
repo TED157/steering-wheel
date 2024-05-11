@@ -28,6 +28,7 @@ typedef struct
     uint32_t RefereeSelfStateNode;
     // Remote
     uint32_t Remote;
+	uint32_t Ft_Remote;//Í¼´«¿ØÖÆ
 } OfflineCounter_t;
 
 
@@ -52,6 +53,7 @@ typedef struct
     uint8_t RefereeSelfStateNode;
     // Remote
     uint8_t Remote;//Ò£¿ØÆ÷
+	uint8_t Ft_Remote;//Í¼´«¿ØÖÆ
 } OfflineMonitor_t;
 
 
@@ -60,5 +62,6 @@ typedef struct
 
 void AimbotDataNodeOfflineCounterUpdate(void);
 extern void DeviceOfflineMonitorUpdate(OfflineMonitor_t *Monitor);
+extern void Ft_RemoteoOfflineStateNodeOffline(void);
 extern uint32_t GetSystemTimer(void);
 #endif

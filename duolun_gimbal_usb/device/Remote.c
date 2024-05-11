@@ -19,19 +19,18 @@
   */
 
 #include "Remote.h"
+#include "CRC8_CRC16.h"
 
 #include "main.h"
 
 #include "bsp_usart.h"
 #include "string.h"
+#include "InterruptService.h"
 
-
+extern OfflineMonitor_t OfflineMonitor;
 
 //遥控器出错数据上限
 #define RC_CHANNAL_ERROR_VALUE 700
-
-extern UART_HandleTypeDef huart3;
-extern DMA_HandleTypeDef hdma_usart3_rx;
 
 
 //取正函数
@@ -49,13 +48,15 @@ static int16_t RC_abs(int16_t value);
   * @retval         none
   */
 void sbus_to_rc(uint8_t DmaBufNmb);
+void FigureTransmission_to_rc(uint8_t DmaBufNmb);
 
 //remote control data 
 //遥控器控制变量
 RC_ctrl_t rc_ctrl;
+remote_control_t ft_rc;
 //接收原始数据，为18个字节，给了36个字节长度，防止DMA传输越界
 static uint8_t sbus_rx_buf[2][SBUS_RX_BUF_NUM];
-
+uint8_t usart6_buf[2][USART_RX_BUF_LENGHT];
 //边沿触发检测
 uint16_t KeyFormerChannal = 0;
 uint16_t KeyJumpChannal = 0;
@@ -76,6 +77,7 @@ void remote_control_init(void)
 {
     usart3_rx_dma_init(sbus_rx_buf[0], sbus_rx_buf[1], SBUS_RX_BUF_NUM);
 	usart1_tx_dma_init();
+	usart6_init(usart6_buf[0], usart6_buf[1], USART_RX_BUF_LENGHT);
 }
 /**
   * @brief          get remote control data point
@@ -175,13 +177,15 @@ void sbus_to_rc(uint8_t DmaBufNmb)
     rc_ctrl.rc.ch[3] = ((sbus_rx_buf[DmaBufNmb][4] >> 1) | (sbus_rx_buf[DmaBufNmb][5] << 7)) & 0x07ff;  //!< Channel 3
     rc_ctrl.rc.s[0] = ((sbus_rx_buf[DmaBufNmb][5] >> 4) & 0x0003);                                      //!< Switch left
     rc_ctrl.rc.s[1] = ((sbus_rx_buf[DmaBufNmb][5] >> 4) & 0x000C) >> 2;                                 //!< Switch right
-    rc_ctrl.mouse.y = -(sbus_rx_buf[DmaBufNmb][6] | (sbus_rx_buf[DmaBufNmb][7] << 8));                     //!< Mouse X axis
+    if(OfflineMonitor.Ft_Remote){
+	rc_ctrl.mouse.y = -(sbus_rx_buf[DmaBufNmb][6] | (sbus_rx_buf[DmaBufNmb][7] << 8));                     //!< Mouse X axis
     rc_ctrl.mouse.x = -(sbus_rx_buf[DmaBufNmb][8] | (sbus_rx_buf[DmaBufNmb][9] << 8));                     //!< Mouse Y axis
     rc_ctrl.mouse.z = sbus_rx_buf[DmaBufNmb][10] | (sbus_rx_buf[DmaBufNmb][11] << 8);                   //!< Mouse Z axis
     rc_ctrl.mouse.press_l = sbus_rx_buf[DmaBufNmb][12];                                                 //!< Mouse Left Is Press ?
     rc_ctrl.mouse.press_r = sbus_rx_buf[DmaBufNmb][13];                                                 //!< Mouse Right Is Press ?
     rc_ctrl.key.v = sbus_rx_buf[DmaBufNmb][14] | (sbus_rx_buf[DmaBufNmb][15] << 8);                     //!< KeyBoard value
-    rc_ctrl.rc.ch[4] = sbus_rx_buf[DmaBufNmb][16] | (sbus_rx_buf[DmaBufNmb][17] << 8);                  //NULL
+    }
+	rc_ctrl.rc.ch[4] = sbus_rx_buf[DmaBufNmb][16] | (sbus_rx_buf[DmaBufNmb][17] << 8);                  //NULL
 
     rc_ctrl.rc.ch[0] -= RC_CH_VALUE_OFFSET;
     rc_ctrl.rc.ch[1] -= RC_CH_VALUE_OFFSET;
@@ -194,7 +198,28 @@ void sbus_to_rc(uint8_t DmaBufNmb)
 
 
 
-
+void FigureTransmission_to_rc(uint8_t DmaBufNmb)
+{
+	memcpy(&ft_rc,usart6_buf[DmaBufNmb],sizeof(ft_rc));
+	uint8_t frame_head[5];
+	memcpy(frame_head,&ft_rc.frame_head,5);
+	if(verify_CRC8_check_sum(frame_head,5))
+	{
+		if(ft_rc.cmd_id==0x304 && verify_CRC16_check_sum(usart6_buf[DmaBufNmb],21))
+		{
+			Ft_RemoteoOfflineStateNodeOffline();
+			KeyFormerChannal = rc_ctrl.key.v;
+			rc_ctrl.mouse.x=-ft_rc.mouse_y;
+			rc_ctrl.mouse.y=-ft_rc.mouse_x;
+			rc_ctrl.mouse.z=ft_rc.mouse_z;
+			rc_ctrl.mouse.press_l=ft_rc.left_button_down;
+			rc_ctrl.mouse.press_r=ft_rc.right_button_down;
+			rc_ctrl.key.v=ft_rc.keyboard_value;
+			KeyJumpChannal = (rc_ctrl.key.v ^ KeyFormerChannal);
+		}
+	}
+	
+}
 
 //键盘应用功能
 //键盘区域分为长按触发的功能区和点按触发的功能区

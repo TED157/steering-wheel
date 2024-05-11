@@ -14,6 +14,9 @@
 //Walk at night and don't look back,there are ghost
 #define AIMBOT_GHOST                                0x161
 
+//自瞄目标相机下的坐标数据包
+#define AIMBOT_POSITION_ID                          0x141
+
 #define GINBAL_REQUEST_STATE_ID                     0x10
 
 #define REFEREE_POWER_HEAT_NODE_0_ID                0x120

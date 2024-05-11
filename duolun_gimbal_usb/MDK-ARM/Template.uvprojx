@@ -134,11 +134,11 @@
             <RunIndependent>0</RunIndependent>
             <UpdateFlashBeforeDebugging>1</UpdateFlashBeforeDebugging>
             <Capability>1</Capability>
-            <DriverSelection>4101</DriverSelection>
+            <DriverSelection>4096</DriverSelection>
           </Flash1>
           <bUseTDR>1</bUseTDR>
           <Flash2>BIN\UL2CM3.DLL</Flash2>
-          <Flash3></Flash3>
+          <Flash3>"" ()</Flash3>
           <Flash4></Flash4>
           <pFcarmOut></pFcarmOut>
           <pFcarmGrp></pFcarmGrp>
@@ -817,6 +817,11 @@
               <FileType>1</FileType>
               <FilePath>..\algorithm\IMU_KF\QuaternionEKF.c</FilePath>
             </File>
+            <File>
+              <FileName>CRC8_CRC16.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\algorithm\CRC8_CRC16.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -893,9 +898,14 @@
               <FilePath>..\device\Usb.c</FilePath>
             </File>
             <File>
-              <FileName>Usb.h</FileName>
+              <FileName>Fs_remote.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\device\Fs_remote.c</FilePath>
+            </File>
+            <File>
+              <FileName>Fs_remote.h</FileName>
               <FileType>5</FileType>
-              <FilePath>..\device\Usb.h</FilePath>
+              <FilePath>..\device\Fs_remote.h</FilePath>
             </File>
           </Files>
         </Group>

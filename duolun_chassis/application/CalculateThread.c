@@ -28,8 +28,7 @@ uint32_t F_Motor[8];
 float WheelAngle[4];
 
 fp32 wz;
-fp32 roting_speed;
-fp32 Angle_zero_6020[4] = {-73.9, -132.0, -128.8, 26.8};
+fp32 Angle_zero_6020[4] = {98.6033325, 7.559509, 98.9989014, -136.444885};
 //fp32 Angle_zero_6020[4] = {0, 0, 0, 0};
 fp32 Direction[5] = {-1.0, -1.0, 1.0, 1.0, -1.0};
 fp32 Maxspeed = 6000.0f;
@@ -42,16 +41,16 @@ float run_per;
 //power control
 float last_speed[8] = {0};
 fp32 he = 0;
-float kp = 1.5 * 1.99999999e-06;
+float kp = 1.30 * 1.99999999e-06;
 float lijupower = 0.0f;
 uint8_t power_flag=0;
 float power_scale;
-fp32 v_gain=0;
+fp32 v_gain=0,cap_gain=1;
 
 uint8_t Mode_last;
 uint8_t Mode_now;
 uint8_t stop_flag=0;
-uint16_t stop_countdown=0;
+int16_t stop_countdown=0;
 
 pid_type_def follow_yaw;
 pid_type_def follow;
@@ -87,10 +86,10 @@ fp32 right_front_6020_speed_PID[3] = {SPEED_6020_KP, SPEED_6020_KI, SPEED_6020_K
 fp32 right_back_6020_speed_PID[3] = {SPEED_6020_KP, SPEED_6020_KI, SPEED_6020_KD};
 fp32 left_back_6020_speed_PID[3] = {SPEED_6020_KP, SPEED_6020_KI, SPEED_6020_KD};
 fp32 left_front_6020_position_PID[3] = {POSITION_6020_KP, POSITION_6020_KI, POSITION_6020_KD};
-fp32 right_front_6020_position_PID[3] = {POSITION_6020_KP, POSITION_6020_KI, POSITION_6020_KD};
+fp32 right_front_6020_position_PID[3] = {POSITION_6020_KP+1, POSITION_6020_KI, POSITION_6020_KD};
 fp32 right_back_6020_position_PID[3] = {POSITION_6020_KP, POSITION_6020_KI, POSITION_6020_KD};
-fp32 left_back_6020_position_PID[3] = {3.8, POSITION_6020_KI, 3.0};
-fp32 left_front_3508_PID[3] = {speed_3508_KP_L, speed_3508_KI_L, speed_3508_KD_L};
+fp32 left_back_6020_position_PID[3] = {POSITION_6020_KP-1.5, POSITION_6020_KI, POSITION_6020_KD-0.3};
+fp32 left_front_3508_PID[3] = {speed_3508_KP, speed_3508_KI, speed_3508_KD};
 fp32 right_front_3508_PID[3] = {speed_3508_KP, speed_3508_KI, speed_3508_KD};
 fp32 right_back_3508_PID[3] = {speed_3508_KP, speed_3508_KI, speed_3508_KD};
 fp32 left_back_3508_PID[3] = {speed_3508_KP, speed_3508_KI, speed_3508_KD};
@@ -254,19 +253,22 @@ void ChassisCommandUpdate()
 			else if(angle_minus<-180) angle_minus+=360;
 			Chassis.vx = ((PTZ.FBSpeed / 32767.0f) * cos(angle_minus/180.0*PI) - (PTZ.LRSpeed / 32767.0f) * sin(angle_minus/180.0*PI)) * (v_gain );
 			Chassis.vy =  ((PTZ.FBSpeed / 32767.0f) * sin(angle_minus/180.0*PI) + (PTZ.LRSpeed / 32767.0f) * cos(angle_minus/180.0*PI)) * (v_gain );
-//			if(Chassis.vx*Chassis.vy !=0)  follow.max_out=0.9;
-//			else follow.max_out=2;
 			Chassis.wz = -PID_calc(&follow,YawMotorMeasure.angle,follow_angle); //* (1.0f + Chassis.Power_Proportion /Power_Max );
+			if(Fabs(Chassis.wz)<0.5*v_gain&&Fabs(angle_minus)<0.5){
+				Chassis.wz=0.001*Chassis.wz/Fabs(Chassis.wz);
+			}
+//			if(Fabs(Chassis.wz)<0.1) Chassis.wz=0;
 			//Chassis.wz = -1;
 		}
 		else if (Chassis.Mode == ROTING)
 		{
-			angle_minus = -YawMotorMeasure.angle + FollowAngle - YawMotorMeasure.speed_rpm * 0.95;
-			Chassis.wz = sin(v_gain/4.2)*1.6;
+			Chassis.wz = sin(v_gain/4.2)*2.2;
 			if((PTZ.ChassisStatueRequest&64)==64)
 			{
 				Chassis.wz = sin(v_gain/4.2)*3.5;
+				angle_minus = -YawMotorMeasure.angle + FollowAngle - YawMotorMeasure.speed_rpm * 0.58;
 			}
+			else angle_minus = -YawMotorMeasure.angle + FollowAngle - YawMotorMeasure.speed_rpm * 0.6;
 			Chassis.vx = ((PTZ.FBSpeed / 32767.0f) * cos(angle_minus/180.0*PI) - (PTZ.LRSpeed / 32767.0f) * sin(angle_minus/180.0*PI))*v_gain/1.8;//* (1.0f + Chassis.Power_Proportion /Power_Max );
 			Chassis.vy = ((PTZ.FBSpeed / 32767.0f) * sin(angle_minus/180.0*PI) + (PTZ.LRSpeed / 32767.0f) * cos(angle_minus/180.0*PI))*v_gain/1.8;//* (1.0f + Chassis.Power_Proportion /Power_Max );
 		}
@@ -296,26 +298,37 @@ void ChassisCommandUpdate()
 		}
 		else
 		{
-			if(stop_flag==1 && Chassis.Mode==FALLOW)
+			if(stop_flag==1 && Chassis.Mode==FALLOW&&Fabs(angle_minus)  <2.0)
 			{
-				stop_countdown=200;
 				stop_flag=2;
+				stop_countdown=1000;
+			}else if(Fabs(angle_minus)  >2.0){
+				stop_flag=0;
 			}
-			if(stop_countdown>0 && Chassis.Mode==FALLOW)
+			if(stop_countdown<=0)
+				stop_flag=0;
+			if(stop_flag==2 && ((Fabs(LEFT_BACK_3508_Measure.speed_rpm)>100 || Fabs(RIGHT_BACK_3508_Measure.speed_rpm)>100 || Fabs(LEFT_FRONT_3508_Measure.speed_rpm)>100 || Fabs(RIGHT_FRONT_3508_Measure.speed_rpm)>100)) && Chassis.Mode==FALLOW)
 			{
-				stop_countdown--;
+				Chassis.wz=0;
 				for (uint8_t i = 0; i < 4; )
 				{
-				float k=sqrt(vy_last*vy_last+vx_last*vx_last);
-				Chassis.WheelAngle[i] = atan2(vy_last + Chassis.wz * k * gen2 * Direction[i], (vx_last + Chassis.wz * k * gen2 * Direction[i + 1])) / 3.1415927 * 180.0 + Angle_zero_6020[i]; 
+				Chassis.WheelAngle[i] = atan2(vy_last, (vx_last)) / 3.1415927 * 180.0 + Angle_zero_6020[i]; 
 				i++;
 				}
+				stop_countdown--;
 			}
 			else{
 			vx_last=0;
 			vy_last=0;
 			stop_flag=0;
-			if(Chassis.wz > 0)
+			if(Chassis.wz == 0)
+			{
+			Chassis.WheelAngle[0] = 0 + Angle_zero_6020[0]+angle_minus;
+			Chassis.WheelAngle[1] = 0 + Angle_zero_6020[1]+angle_minus; // 默认角度
+			Chassis.WheelAngle[2] = 0 + Angle_zero_6020[2]+angle_minus;
+			Chassis.WheelAngle[3] = 0 + Angle_zero_6020[3]+angle_minus;						
+			}
+			else if(Chassis.wz > 0)
 			{
 			Chassis.WheelAngle[0] = -135.0f + Angle_zero_6020[0];
 			Chassis.WheelAngle[1] = -45.0f + Angle_zero_6020[1]; // 默认角度
@@ -329,13 +342,6 @@ void ChassisCommandUpdate()
 			Chassis.WheelAngle[2] = -135.0f + Angle_zero_6020[2];
 			Chassis.WheelAngle[3] = -45.0f + Angle_zero_6020[3];							
 			}	
-			else if(Chassis.wz == 0)
-			{
-			Chassis.WheelAngle[0] = 0 + Angle_zero_6020[0];
-			Chassis.WheelAngle[1] = 0 + Angle_zero_6020[1]; // 默认角度
-			Chassis.WheelAngle[2] = 0 + Angle_zero_6020[2];
-			Chassis.WheelAngle[3] = 0 + Angle_zero_6020[3];						
-			}
 		}
 		}
 		Chassis.WheelAngle[0] = loop_fp32_constrain(Chassis.WheelAngle[0], LEFT_FRONT_6020_Measure.angle - 180.0f, LEFT_FRONT_6020_Measure.angle + 180.0f);
@@ -346,8 +352,8 @@ void ChassisCommandUpdate()
 				//电容的使用
 		if(((CMS_Data.cms_status) & (uint16_t) 1) != 1 && CMS_Data.TxOpen == 1)
 		{
-			Chassis.vx = 2.8 * Chassis.vx ;
-			Chassis.vy = 2.8 * Chassis.vy ;
+			Chassis.vx = cap_gain * Chassis.vx ;
+			Chassis.vy = cap_gain * Chassis.vy ;
 			Chassis.wz = 1.0 * Chassis.wz ;
 			CMS_Data.Mode = 1;
 		}
@@ -363,12 +369,7 @@ void ChassisCommandUpdate()
 		Chassis.WheelSpeed[1] = speed[1];
 		Chassis.WheelSpeed[2] = speed[2];
 		Chassis.WheelSpeed[3] = -speed[3];
-		if(stop_flag==2){
-			Chassis.WheelSpeed[0] = 0;
-			Chassis.WheelSpeed[1] = 0;
-			Chassis.WheelSpeed[2] = 0;
-			Chassis.WheelSpeed[3] = 0;
-		}
+		
 //		if(Fabs(Fabs(LEFT_FRONT_6020_Measure.angle-Chassis.WheelAngle[0])>1.5
 //			||RIGHT_FRONT_6020_Measure.angle-Chassis.WheelAngle[1])>1.5 
 //			|| Fabs(RIGHT_BACK_6020_Measure.angle-Chassis.WheelAngle[2])>1.5
@@ -425,6 +426,22 @@ void Angle_Speed_calc()
 
 void ChassisCurrentUpdate()
 {
+	if(stop_flag==2){
+		Chassis.WheelSpeed[0] = 0;
+		Chassis.WheelSpeed[1] = 0;
+		Chassis.WheelSpeed[2] = 0;
+		Chassis.WheelSpeed[3] = 0;
+		left_front_3508_pid.Kp=6000;
+		right_front_3508_pid.Kp=6000;
+		right_back_3508_pid.Kp=6000;
+		left_back_3508_pid.Kp=6000;
+	}
+	else{
+		left_front_3508_pid.Kp=3600;
+		right_front_3508_pid.Kp=3600;
+		right_back_3508_pid.Kp=3600;
+		left_back_3508_pid.Kp=3600;
+	}
 	Chassis.Current[0] = PID_calc(&left_front_6020_speed_pid, LEFT_FRONT_6020_Measure.speed_rpm, Chassis.speed_6020[0]);;
 	Chassis.Current[1] = PID_calc(&right_front_6020_speed_pid, RIGHT_FRONT_6020_Measure.speed_rpm, Chassis.speed_6020[1]);
 	Chassis.Current[2] = PID_calc(&right_back_6020_speed_pid, RIGHT_BACK_6020_Measure.speed_rpm, Chassis.speed_6020[2]);;
@@ -434,6 +451,12 @@ void ChassisCurrentUpdate()
 	Chassis.Current[5] = PID_calc(&right_front_3508_pid, RIGHT_FRONT_3508_Measure.speed_rpm / Maxspeed, Chassis.WheelSpeed[1]);
 	Chassis.Current[6] = PID_calc(&right_back_3508_pid, RIGHT_BACK_3508_Measure.speed_rpm / Maxspeed, Chassis.WheelSpeed[2]);
 	Chassis.Current[7] = PID_calc(&left_back_3508_pid, LEFT_BACK_3508_Measure.speed_rpm / Maxspeed, Chassis.WheelSpeed[3]);
+	if(stop_flag==2){
+		Chassis.Current[0] *= 1.2;
+		Chassis.Current[1] *= 1.2;
+		Chassis.Current[2] *= 1.2;
+		Chassis.Current[3] *= 1.2;
+	}
 }
 
 void RefereeInfUpdate(ext_game_robot_status_t *referee)
@@ -442,33 +465,49 @@ void RefereeInfUpdate(ext_game_robot_status_t *referee)
 	switch(referee->chassis_power_limit)
 	{
 		case 45:
-			Power_Max = 45;kp=1.30 * 1.99999999e-06;v_gain=1.8;break;
+			Power_Max = 45;v_gain=0.86;cap_gain=2.4;break;
 		case 50:
-			Power_Max = 50;kp=1.28 * 1.99999999e-06;v_gain=1.9;break;
+			Power_Max = 50;v_gain=0.93;cap_gain=2.3;break;
 		case 55:
-			Power_Max = 55;kp=1.24 * 1.99999999e-06;v_gain=2.1;break;
+			Power_Max = 55;v_gain=0.96;cap_gain=2.3;break;
 		case 60:	
-			Power_Max = 60;kp=1.17 * 1.99999999e-06;v_gain=2.3;break;
+			Power_Max = 60;v_gain=1.02;cap_gain=2.33;break;
 		case 65:	
-			Power_Max = 65;kp=1.15 * 1.99999999e-06;v_gain=2.5;break;
+			Power_Max = 65;v_gain=1.06;cap_gain=2.19;break;
 		case 70:	
-			Power_Max = 70;kp=1.13 * 1.99999999e-06;v_gain=2.5;break;
+			Power_Max = 70;v_gain=1.12;cap_gain=2.12;break;
 		case 75:	
-			Power_Max = 75;kp=1.13 * 1.99999999e-06;v_gain=2.7;break;
+			Power_Max = 75;v_gain=1.16;cap_gain=2.09;break;
 		case 80:
-			Power_Max = 80;kp=1.12 * 1.99999999e-06;v_gain=3.0;break;
+			Power_Max = 80;v_gain=1.25;cap_gain=2.04/*2.04*/;break;
 		case 85:	
-			Power_Max = 85;kp=1.12 * 1.99999999e-06;v_gain=3.0;break;
+			Power_Max = 85;v_gain=1.27;cap_gain=2.02;break;
 		case 90:	
-			Power_Max = 90;kp=1.09 * 1.99999999e-06;v_gain=2.8;break;
+			Power_Max = 90;v_gain=1.29;cap_gain=2.00;break;
 		case 95:	
-			Power_Max = 95;kp=1.11 * 1.99999999e-06;v_gain=2.8;break;
+			Power_Max = 95;v_gain=1.33;cap_gain=1.90;break;
 		case 100:	
-			Power_Max = 100;kp=1.11 * 1.99999999e-06;v_gain=2.9;break;
+			Power_Max = 100;v_gain=1.36;cap_gain=1.84;break;
 		case 120:
-			Power_Max = 120;;kp=1.1 * 1.99999999e-06;v_gain=3.4;break;
+			Power_Max = 120;v_gain=1.51;cap_gain=1.80;break;
+		case 130:
+			Power_Max = 130;v_gain=1.58;cap_gain=1.40;break;
+		case 140:
+			Power_Max = 140;v_gain=1.65;cap_gain=1.30;break;
+		case 150:
+			Power_Max = 150;v_gain=1.73;cap_gain=1.30;break;
+		case 160:
+			Power_Max = 160;v_gain=1.80;cap_gain=1.20;break;
+		case 170:
+			Power_Max = 170;v_gain=1.87;cap_gain=1.20;break;
+		case 180:
+			Power_Max = 180;v_gain=1.93;cap_gain=1.10;break;
+		case 190:
+			Power_Max = 190;v_gain=2.00;cap_gain=1.10;break;
+		case 200:
+			Power_Max = 200;v_gain=2.100;cap_gain=1.10;break;
 		default:
-			Power_Max = 45;v_gain=3;break;
+			Power_Max = 45;v_gain=0.85;cap_gain=1.0;break;
 		
 	}
 }
@@ -488,7 +527,7 @@ void CMS__()
 		CMS_Data.TxOpen = 1;
 	}
 	else CMS_Data.TxOpen =0;	
-	if(/*power_heat_data_t.buffer_energy < 30 || */cms_offline_counter > 200) //cms用不了
+	if(power_heat_data_t.buffer_energy < 5 || cms_offline_counter > 200) //cms用不了
 	{
 		CMS_Data.TxOpen = 0;	
 	}
@@ -538,31 +577,39 @@ uint8_t chassis_powerloop(Chassis_t *Chassis)
 
 	lijupower = he + START_POWER;
 
-	if (CMS_Data.cms_cap_v <= 15 || cms_offline_counter > 500 || power_heat_data_t.buffer_energy<50)
+	if (CMS_Data.cms_cap_v <= 15 || cms_offline_counter > 500 || power_heat_data_t.buffer_energy<40)
 	{
 		power_flag = 0;
 		cms_flag=0;
 	}
-
+	else{
+		power_flag = 1;
+	}
 	if (CMS_Data.TxOpen==1)
 	{
-		Power_Max += 30;
+		Power_Max = 200;
 		cms_flag=1;
+		if(power_heat_data_t.buffer_energy<5)
+			power_flag=0;
+		else{
+			power_flag=1;
+		}
+		
 	}
     if(power_flag == 0){
-		if (power_heat_data_t.buffer_energy < 40 && power_heat_data_t.buffer_energy >= 35 && cms_flag==0)
+		/*if (power_heat_data_t.buffer_energy < 40 && power_heat_data_t.buffer_energy >= 35)
 			
 		{
-			Plimit = 0.45;
+			Plimit = 0.5;
 		}
-		else if (power_heat_data_t.buffer_energy < 35 && power_heat_data_t.buffer_energy >= 30 && cms_flag==0)
+		else */if (power_heat_data_t.buffer_energy < 35 && power_heat_data_t.buffer_energy >= 30)
 		{
-			Plimit = 0.4;
+			Plimit = 0.6;
 			//power_scale = (Power_Max-2) / lijupower;
 		}
 		else if (power_heat_data_t.buffer_energy < 30 && power_heat_data_t.buffer_energy >= 20)
 		{
-			Plimit = 0.2;
+			Plimit = 0.3;
 			//power_scale = (Power_Max-2) / lijupower;
 			
 		}
