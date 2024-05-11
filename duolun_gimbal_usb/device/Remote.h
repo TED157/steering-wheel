@@ -25,6 +25,8 @@
 
 #define RC_FRAME_LENGTH 18u
 
+#define USART_RX_BUF_LENGHT 32
+
 #define RC_CH_VALUE_MIN         ((uint16_t)364)
 #define RC_CH_VALUE_OFFSET      ((uint16_t)1024)
 #define RC_CH_VALUE_MAX         ((uint16_t)1684)
@@ -78,6 +80,32 @@ typedef __PACKED_STRUCT
 
 } RC_ctrl_t;
 
+
+/*图传链路结构体*/
+
+typedef __PACKED_STRUCT
+{
+	//帧头
+	__PACKED_STRUCT
+	{
+	uint8_t SOF;
+	uint16_t data_length;
+	uint8_t seq;
+	uint8_t CRC8; 
+	} frame_head;
+	//命令码
+	uint16_t cmd_id;
+	//数据内容
+	int16_t mouse_x;
+	int16_t mouse_y;
+	int16_t mouse_z;
+	int8_t left_button_down;
+	int8_t right_button_down;
+	uint16_t keyboard_value;
+	uint16_t reserved;
+	//帧尾校验
+	uint16_t frame_tail;
+}remote_control_t;
 /* ----------------------- Internal Data ----------------------------------- */
 
 extern void remote_control_init(void);
@@ -86,6 +114,7 @@ extern uint8_t RC_data_is_error(void);
 //extern void slove_RC_lost(void);
 //extern void slove_data_error(void);
 extern void sbus_to_rc(uint8_t DmaBufNmb);
+extern void FigureTransmission_to_rc(uint8_t DmaBufNmb);
 
 //长按触发区域的键值检测
 extern bool_t CheakKeyPress(uint16_t Key);

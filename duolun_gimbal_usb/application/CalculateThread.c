@@ -64,6 +64,7 @@ void ShootSpeedAdopt(void);
 bool_t single_shoot_flag=0;//单发开关
 bool_t auto_fire_flag=1;//自动开火开关
 bool_t switch_flag=0;//打符切换开关
+uint8_t No_noforce_flag=1;
 int16_t dealta_heat=0;
 int32_t onelasttime=0;
 int16_t onelastheat=0;
@@ -160,7 +161,7 @@ void GimbalStateMachineUpdate(void)
 //        return;
 //    }
     // 遥控器离线保护
-    if(Offline.Remote==DEVICE_OFFLINE)
+    if(Offline.Remote==DEVICE_OFFLINE && Offline.Ft_Remote==DEVICE_OFFLINE)
 		{
         if(Gimbal.StateMachine!=GM_NO_FORCE)
 						Gimbal.StateMachine=GM_NO_FORCE;
@@ -218,11 +219,38 @@ void GimbalStateMachineUpdate(void)
             }
             break;
         default:
-            if (Gimbal.StateMachine != GM_NO_FORCE){
+            if (Gimbal.StateMachine != GM_NO_FORCE && Offline.Ft_Remote==DEVICE_OFFLINE){
                 Gimbal.StateMachine = GM_NO_FORCE;
             }
             break;
     }
+	if(CheakKeyPressOnce(KEY_PRESSED_OFFSET_Z)){
+		No_noforce_flag=(No_noforce_flag+1)%2;
+	}
+	if(No_noforce_flag && Offline.Remote==DEVICE_OFFLINE)
+	{
+		Gimbal.StateMachine=GM_NO_FORCE;
+	}
+	else if(~No_noforce_flag && Offline.Remote==DEVICE_OFFLINE){
+		if (Gimbal.StateMachine == GM_NO_FORCE)
+		{
+            Gimbal.StateMachine = GM_INIT;
+            gimbal_init_countdown = 800;
+		}
+        else if (Gimbal.StateMachine == GM_INIT)
+        {
+			if (gimbal_init_countdown > 0){
+				gimbal_init_countdown--;
+			}
+            else{
+                Gimbal.StateMachine = GM_TEST;
+            }
+		}
+        else{
+            Gimbal.StateMachine = GM_TEST;
+        }
+		Remote.rc.s[1]=2;
+	}
 }
 
 void ChassisStateMachineUpdate(void)
@@ -367,7 +395,7 @@ void GimbalFireModeUpdate(void)
 						if(single_shoot_flag==1||Offline.RefereeAmmoLimitNode0==1)
 								gimbal_fire_countdown=450;//time interval
 						else 
-								gimbal_fire_countdown=(int)(10000.0/(dealta_heat/1.7+Referee.Ammo0Limit.Cooling/2.0+5)-45);
+								gimbal_fire_countdown=(int)(10000.0/(dealta_heat/1.4+Referee.Ammo0Limit.Cooling/1.8+5)-45);
 						Gimbal.FireMode=GM_FIRE_COOLING; //no shoot
 				}
 				if(Gimbal.FireMode==GM_FIRE_COOLING && gimbal_fire_countdown>0  && gimbal_fire_countdown<280 && rune_shoot_flag<1 && Gimbal.ControlMode==GM_AIMBOT_RUNES)

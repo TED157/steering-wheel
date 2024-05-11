@@ -527,7 +527,7 @@ void CMS__()
 		CMS_Data.TxOpen = 1;
 	}
 	else CMS_Data.TxOpen =0;	
-	if(power_heat_data_t.buffer_energy < 20 || cms_offline_counter > 200) //cms用不了
+	if(power_heat_data_t.buffer_energy < 5 || cms_offline_counter > 200) //cms用不了
 	{
 		CMS_Data.TxOpen = 0;	
 	}
@@ -589,7 +589,7 @@ uint8_t chassis_powerloop(Chassis_t *Chassis)
 	{
 		Power_Max = 200;
 		cms_flag=1;
-		if(power_heat_data_t.buffer_energy<15)
+		if(power_heat_data_t.buffer_energy<5)
 			power_flag=0;
 		else{
 			power_flag=1;

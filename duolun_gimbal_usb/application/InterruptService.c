@@ -83,7 +83,8 @@ void RefereeSelfStateNodeOfflineCounterUpdate(void);
 void RemoteOfflineCounterUpdate(void);
 void GimbalImuSend(void);
 void RefereeUsbSend(void);
-	
+void Ft_RemoteoOfflineStateNodeOffline(void);
+
 uint32_t RefereeInterpolationTimer = 0;
 
 /**
@@ -311,6 +312,36 @@ void USART1_IRQHandler(void)
 //串口中断
 void USART6_IRQHandler(void)
 {
+#if REMOTE_UART6==1
+	static volatile uint8_t res;
+
+    if(USART6->SR & UART_FLAG_IDLE)
+    {
+        __HAL_UART_CLEAR_IDLEFLAG(&huart6);
+		if(USART6->SR & UART_FLAG_TC)
+			__HAL_UART_CLEAR_FLAG(&huart6, UART_FLAG_TC);
+        static uint16_t this_time_rx_len = 0;
+
+        if ((huart6.hdmarx->Instance->CR & DMA_SxCR_CT) == RESET)
+        {
+            __HAL_DMA_DISABLE(huart6.hdmarx);
+            this_time_rx_len = USART_RX_BUF_LENGHT - __HAL_DMA_GET_COUNTER(huart6.hdmarx);
+            __HAL_DMA_SET_COUNTER(huart6.hdmarx, USART_RX_BUF_LENGHT);
+            huart6.hdmarx->Instance->CR |= DMA_SxCR_CT;
+            __HAL_DMA_ENABLE(huart6.hdmarx);
+			FigureTransmission_to_rc(0);
+        }
+        else
+        {
+            __HAL_DMA_DISABLE(huart6.hdmarx);
+            this_time_rx_len = USART_RX_BUF_LENGHT - __HAL_DMA_GET_COUNTER(huart6.hdmarx);
+            __HAL_DMA_SET_COUNTER(huart6.hdmarx, USART_RX_BUF_LENGHT);
+            huart6.hdmarx->Instance->CR &= ~(DMA_SxCR_CT);
+            __HAL_DMA_ENABLE(huart6.hdmarx);
+			FigureTransmission_to_rc(1);
+        }
+    }
+#elif REMOTE_UART6==2
     if (huart6.Instance->SR & UART_FLAG_RXNE)//接收到数据
     {
         __HAL_UART_CLEAR_PEFLAG(&huart6);
@@ -385,7 +416,7 @@ void USART6_IRQHandler(void)
             }
         }
     }
-
+#endif
 }
 /** 
   * @brief This function handles TIM3 global interrupt.
@@ -564,6 +595,7 @@ void CommuniteOfflineCounterUpdate(void)
     OfflineCounter.RefereeAmmoLimitNode2++;
     OfflineCounter.RefereeSelfStateNode++;
     OfflineCounter.Remote++;
+	OfflineCounter.Ft_Remote++;
 }
 
 void CommuniteOfflineStateUpdate(void)
@@ -669,6 +701,13 @@ void CommuniteOfflineStateUpdate(void)
     else{
         OfflineMonitor.Remote = 0;
     }
+	//图传控制
+	if(OfflineCounter.Ft_Remote>FT_REMOTE_OFFLINE_TIMEMAX){
+		OfflineMonitor.Ft_Remote = 1;
+	}
+	else{
+		OfflineMonitor.Ft_Remote = 0;
+	}
 }
 
 void DeviceOfflineMonitorUpdate(OfflineMonitor_t *Monitor)
@@ -754,4 +793,9 @@ void RefereeSelfStateNodeOfflineCounterUpdate(void)
 void RemoteOfflineCounterUpdate(void)
 {
     OfflineCounter.Remote = 0;
+}
+
+void Ft_RemoteoOfflineStateNodeOffline(void)
+{
+	OfflineCounter.Ft_Remote = 0;
 }
