@@ -28,7 +28,7 @@ uint32_t F_Motor[8];
 float WheelAngle[4];
 
 fp32 wz;
-fp32 Angle_zero_6020[4] = {98.6033325, 7.559509, 98.9989014, -136.444885};
+fp32 Angle_zero_6020[4] = {103.569763, -136.049316, 98.1638184, 3.70295715};
 //fp32 Angle_zero_6020[4] = {0, 0, 0, 0};
 fp32 Direction[5] = {-1.0, -1.0, 1.0, 1.0, -1.0};
 fp32 Maxspeed = 6000.0f;
@@ -86,9 +86,9 @@ fp32 right_front_6020_speed_PID[3] = {SPEED_6020_KP, SPEED_6020_KI, SPEED_6020_K
 fp32 right_back_6020_speed_PID[3] = {SPEED_6020_KP, SPEED_6020_KI, SPEED_6020_KD};
 fp32 left_back_6020_speed_PID[3] = {SPEED_6020_KP, SPEED_6020_KI, SPEED_6020_KD};
 fp32 left_front_6020_position_PID[3] = {POSITION_6020_KP, POSITION_6020_KI, POSITION_6020_KD};
-fp32 right_front_6020_position_PID[3] = {POSITION_6020_KP+1, POSITION_6020_KI, POSITION_6020_KD};
+fp32 right_front_6020_position_PID[3] = {POSITION_6020_KP, POSITION_6020_KI, POSITION_6020_KD};
 fp32 right_back_6020_position_PID[3] = {POSITION_6020_KP, POSITION_6020_KI, POSITION_6020_KD};
-fp32 left_back_6020_position_PID[3] = {POSITION_6020_KP-1.5, POSITION_6020_KI, POSITION_6020_KD-0.3};
+fp32 left_back_6020_position_PID[3] = {POSITION_6020_KP, POSITION_6020_KI, POSITION_6020_KD};
 fp32 left_front_3508_PID[3] = {speed_3508_KP, speed_3508_KI, speed_3508_KD};
 fp32 right_front_3508_PID[3] = {speed_3508_KP, speed_3508_KI, speed_3508_KD};
 fp32 right_back_3508_PID[3] = {speed_3508_KP, speed_3508_KI, speed_3508_KD};
@@ -301,8 +301,8 @@ void ChassisCommandUpdate()
 			if(stop_flag==1 && Chassis.Mode==FALLOW&&Fabs(angle_minus)  <2.0)
 			{
 				stop_flag=2;
-				stop_countdown=1000;
-			}else if(Fabs(angle_minus)  >2.0){
+				stop_countdown=500;
+			}else if(Fabs(angle_minus)  >3.0){
 				stop_flag=0;
 			}
 			if(stop_countdown<=0)
@@ -315,7 +315,7 @@ void ChassisCommandUpdate()
 				Chassis.WheelAngle[i] = atan2(vy_last, (vx_last)) / 3.1415927 * 180.0 + Angle_zero_6020[i]; 
 				i++;
 				}
-				stop_countdown--;
+				//stop_countdown--;
 			}
 			else{
 			vx_last=0;
@@ -350,14 +350,18 @@ void ChassisCommandUpdate()
 		Chassis.WheelAngle[3] = loop_fp32_constrain(Chassis.WheelAngle[3], LEFT_BACK_6020_Measure.angle - 180.0f, LEFT_BACK_6020_Measure.angle + 180.0f);		
 		/***********************                 3508速度解算                    ******************************/
 				//电容的使用
-		if(((CMS_Data.cms_status) & (uint16_t) 1) != 1 && CMS_Data.TxOpen == 1)
+		if(((CMS_Data.cms_status) & (uint16_t) 1) != 1 && CMS_Data.Mode == FLY)
 		{
 			Chassis.vx = cap_gain * Chassis.vx ;
 			Chassis.vy = cap_gain * Chassis.vy ;
 			Chassis.wz = 1.0 * Chassis.wz ;
-			CMS_Data.Mode = 1;
 		}
-		else CMS_Data.Mode = 0;
+		else if(((CMS_Data.cms_status) & (uint16_t) 1) != 1 && CMS_Data.Mode == HIGH_SPEED &&Power_Max<=120)
+		{
+			Chassis.vx = Chassis.vx *1.24;
+			Chassis.vy = Chassis.vy *1.24;
+			Chassis.wz += 1.0 * Chassis.wz ;
+		}
 
 		for (uint8_t i = 0; i < 4;)
 		{
@@ -465,17 +469,17 @@ void RefereeInfUpdate(ext_game_robot_status_t *referee)
 	switch(referee->chassis_power_limit)
 	{
 		case 45:
-			Power_Max = 45;v_gain=0.86;cap_gain=2.4;break;
+			Power_Max = 45;v_gain=0.91;cap_gain=2.74;break;
 		case 50:
-			Power_Max = 50;v_gain=0.93;cap_gain=2.3;break;
+			Power_Max = 50;v_gain=0.95;cap_gain=2.62;break;
 		case 55:
-			Power_Max = 55;v_gain=0.96;cap_gain=2.3;break;
+			Power_Max = 55;v_gain=0.99;cap_gain=2.48;break;
 		case 60:	
-			Power_Max = 60;v_gain=1.02;cap_gain=2.33;break;
+			Power_Max = 60;v_gain=1.02;cap_gain=2.40;break;
 		case 65:	
-			Power_Max = 65;v_gain=1.06;cap_gain=2.19;break;
+			Power_Max = 65;v_gain=1.06;cap_gain=2.32;break;
 		case 70:	
-			Power_Max = 70;v_gain=1.12;cap_gain=2.12;break;
+			Power_Max = 70;v_gain=1.12;cap_gain=2.15;break;
 		case 75:	
 			Power_Max = 75;v_gain=1.16;cap_gain=2.09;break;
 		case 80:
@@ -517,19 +521,34 @@ extern uint16_t cms_offline_counter;
 void CMS__()
 {
 	if(CMS_Data.cms_cap_v < 12){
-		CMS_Data.charge_flag=1;
-	}
-	else if(CMS_Data.cms_cap_v > 18){
 		CMS_Data.charge_flag=0;
 	}
-	if((Chassis.CapKey) && CMS_Data.cms_cap_v > 12 && CMS_Data.charge_flag==0 )
-	{
-		CMS_Data.TxOpen = 1;
+	else if(CMS_Data.cms_cap_v > 18 && (Chassis.CapKey)){
+		CMS_Data.charge_flag=1;
 	}
-	else CMS_Data.TxOpen =0;	
-	if(power_heat_data_t.buffer_energy < 5 || cms_offline_counter > 200) //cms用不了
+	else if(CMS_Data.cms_cap_v > 15 && (!Chassis.CapKey)){
+		CMS_Data.charge_flag=2;
+	}
+	else if(CMS_Data.charge_flag==1 && CMS_Data.cms_cap_v > 12 && (!Chassis.CapKey)){
+		CMS_Data.charge_flag=2;
+	}
+	if((Chassis.CapKey) && CMS_Data.cms_cap_v > 12 && CMS_Data.charge_flag==1 )
 	{
-		CMS_Data.TxOpen = 0;	
+		CMS_Data.Mode =FLY;
+	}
+	else if((!Chassis.CapKey) && CMS_Data.cms_cap_v > 12 && CMS_Data.charge_flag==2){
+		CMS_Data.Mode = HIGH_SPEED;
+	}
+	else{
+		CMS_Data.Mode = NORMAL;
+	}
+	if(power_heat_data_t.buffer_energy < 20 || cms_offline_counter > 200) //cms用不了
+	{
+		CMS_Data.Mode = NORMAL;	
+	}
+	if(power_heat_data_t.buffer_energy > 70)
+	{
+		CMS_Data.Mode =FLY;
 	}
 	cms_offline_counter ++;
 }
@@ -585,16 +604,20 @@ uint8_t chassis_powerloop(Chassis_t *Chassis)
 	else{
 		power_flag = 1;
 	}
-	if (CMS_Data.TxOpen==1)
+	if (CMS_Data.Mode==FLY)
 	{
 		Power_Max = 200;
 		cms_flag=1;
-		if(power_heat_data_t.buffer_energy<5)
+		if(power_heat_data_t.buffer_energy<20)
 			power_flag=0;
 		else{
 			power_flag=1;
 		}
 		
+	}
+	else if(CMS_Data.Mode==HIGH_SPEED)
+	{
+		Power_Max += 50;
 	}
     if(power_flag == 0){
 		/*if (power_heat_data_t.buffer_energy < 40 && power_heat_data_t.buffer_energy >= 35)
@@ -641,11 +664,6 @@ uint8_t chassis_powerloop(Chassis_t *Chassis)
 		Chassis->Current[6] *= (power_scale) * (Plimit);
 		Chassis->Current[7] *= (power_scale) * (Plimit);
 
-		CMS_Data.charge_limit = 0.0f;
-	}
-	else
-	{
-		CMS_Data.charge_limit = Power_Max - lijupower;
 	}
 
 	//			if(CMS_charge_power < 0.0f)

@@ -136,6 +136,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
             RefereeAmmoSpeedNode0InformationUpdate(rx_data);
 			ammo_speed_ad_flag=1;
 			rune_shoot_flag=2;
+//			DMA_printf("%d\n",GetSystemTimer());
             break;
         }
         case REFEREE_AMMO_SPEED_NODE_1_ID:

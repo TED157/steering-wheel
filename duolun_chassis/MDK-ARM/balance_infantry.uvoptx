@@ -213,87 +213,102 @@
         <Ww>
           <count>11</count>
           <WinNumber>1</WinNumber>
-          <ItemText>LEFT_FRONT_6020_Measure,0x0A</ItemText>
+          <ItemText>LEFT_FRONT_3508_Measure,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>12</count>
           <WinNumber>1</WinNumber>
-          <ItemText>RIGHT_FRONT_6020_Measure,0x0A</ItemText>
+          <ItemText>OfflineMonitor</ItemText>
         </Ww>
         <Ww>
           <count>13</count>
           <WinNumber>1</WinNumber>
-          <ItemText>RIGHT_BACK_6020_Measure,0x0A</ItemText>
+          <ItemText>left_front_3508_pid</ItemText>
         </Ww>
         <Ww>
           <count>14</count>
           <WinNumber>1</WinNumber>
-          <ItemText>LEFT_BACK_6020_Measure,0x0A</ItemText>
+          <ItemText>\\balance_infantry\../device/RefereeBehaviour.c\power_heat_data_t.buffer_energy</ItemText>
         </Ww>
         <Ww>
           <count>15</count>
           <WinNumber>1</WinNumber>
-          <ItemText>RIGHT_FRONT_3508_Measure,0x0A</ItemText>
+          <ItemText>YawMotorMeasure,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>16</count>
           <WinNumber>1</WinNumber>
-          <ItemText>LEFT_FRONT_3508_Measure,0x0A</ItemText>
+          <ItemText>left_front_6020_speed_pid</ItemText>
         </Ww>
         <Ww>
           <count>17</count>
           <WinNumber>1</WinNumber>
-          <ItemText>OfflineMonitor</ItemText>
+          <ItemText>left_front_6020_position_pid,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>18</count>
           <WinNumber>1</WinNumber>
-          <ItemText>left_front_3508_pid</ItemText>
+          <ItemText>angle_minus</ItemText>
         </Ww>
         <Ww>
           <count>19</count>
           <WinNumber>1</WinNumber>
-          <ItemText>\\balance_infantry\../device/RefereeBehaviour.c\power_heat_data_t.buffer_energy</ItemText>
+          <ItemText>stop_countdown,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>20</count>
           <WinNumber>1</WinNumber>
-          <ItemText>YawMotorMeasure,0x0A</ItemText>
+          <ItemText>follow,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>21</count>
           <WinNumber>1</WinNumber>
-          <ItemText>left_front_6020_speed_pid</ItemText>
+          <ItemText>power_flag</ItemText>
         </Ww>
         <Ww>
           <count>22</count>
           <WinNumber>1</WinNumber>
-          <ItemText>left_front_6020_position_pid,0x0A</ItemText>
+          <ItemText>\\balance_infantry\../device/RefereeBehaviour.c\power_heat_data_t.chassis_power</ItemText>
         </Ww>
         <Ww>
           <count>23</count>
           <WinNumber>1</WinNumber>
-          <ItemText>angle_minus</ItemText>
+          <ItemText>LEFT_FRONT_6020_Measure</ItemText>
         </Ww>
         <Ww>
           <count>24</count>
           <WinNumber>1</WinNumber>
-          <ItemText>stop_countdown,0x0A</ItemText>
+          <ItemText>RIGHT_FRONT_6020_Measure</ItemText>
         </Ww>
         <Ww>
           <count>25</count>
           <WinNumber>1</WinNumber>
-          <ItemText>follow,0x0A</ItemText>
+          <ItemText>RIGHT_BACK_6020_Measure</ItemText>
         </Ww>
         <Ww>
           <count>26</count>
           <WinNumber>1</WinNumber>
-          <ItemText>power_flag</ItemText>
+          <ItemText>LEFT_BACK_6020_Measure</ItemText>
         </Ww>
         <Ww>
           <count>27</count>
           <WinNumber>1</WinNumber>
-          <ItemText>\\balance_infantry\../device/RefereeBehaviour.c\power_heat_data_t.chassis_power</ItemText>
+          <ItemText>referee_unpack_obj</ItemText>
+        </Ww>
+        <Ww>
+          <count>28</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>follow</ItemText>
+        </Ww>
+        <Ww>
+          <count>29</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>YawMotorMeasure,0x0A</ItemText>
+        </Ww>
+        <Ww>
+          <count>30</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>\\balance_infantry\../device/RefereeBehaviour.c\power_heat_data_t.buffer_energy</ItemText>
         </Ww>
       </WatchWindow1>
       <Tracepoint>
@@ -338,12 +353,6 @@
       <pszMrulep></pszMrulep>
       <pSingCmdsp></pSingCmdsp>
       <pMultCmdsp></pMultCmdsp>
-      <SystemViewers>
-        <Entry>
-          <Name>System Viewer\USART6</Name>
-          <WinId>35905</WinId>
-        </Entry>
-      </SystemViewers>
       <DebugDescription>
         <Enable>1</Enable>
         <EnableFlashSeq>1</EnableFlashSeq>

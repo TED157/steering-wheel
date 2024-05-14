@@ -276,11 +276,12 @@ void UI(void const * argument)
 				coords_flag=2;
 			}
 		}
-		if(CMS_Data.TxOpen==0)
+		if(CMS_Data.Mode==NORMAL)
 			Float_Draw(&CapData,"cpd",UI_Graph_Change,0,UI_Color_White,30,5,2,920,158,CMS_Data.cms_cap_v*1000);
-		else
-			Float_Draw(&CapData,"cpd",UI_Graph_Change,0,UI_Color_Yellow,20,5,2,920,158,CMS_Data.cms_cap_v*1000);
-		
+		else if(CMS_Data.Mode==FLY)
+			Float_Draw(&CapData,"cpd",UI_Graph_Change,0,UI_Color_Yellow,40,5,2,920,158,CMS_Data.cms_cap_v*1000);
+		else if(CMS_Data.Mode==HIGH_SPEED)
+			Float_Draw(&CapData,"cpd",UI_Graph_Change,0,UI_Color_Purplish_red,40,5,2,920,158,CMS_Data.cms_cap_v*1000);
 		if(count2==0)
 		{			
 			if((PTZ.AimTargetRequest & 0x08) || coords_flag==2){

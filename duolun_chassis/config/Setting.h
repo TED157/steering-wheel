@@ -33,13 +33,13 @@
 
 #define YawMotorId                                     	0x205
 
-#define FollowAngle              						-158.244415f//26.134f
+#define FollowAngle              						21.6017609f//26.134f
 
 
 
-#define FOLLOW_KP						0.104f
+#define FOLLOW_KP						0.033f
 #define FOLLOW_KI						0.0f
-#define FOLLOW_KD						2.55f
+#define FOLLOW_KD						2.65f
 
 
 
@@ -47,13 +47,13 @@
 #define TURN_KI							0.0f//0.0f
 #define TURN_KD							0.0f//50000.0f
  
-#define SPEED_6020_KP							140.0f
+#define SPEED_6020_KP							160.0f
 #define SPEED_6020_KI							0.0f
 #define SPEED_6020_KD							0.0f
 
-#define POSITION_6020_KP                        4.2f
-#define POSITION_6020_KI                        0.0f
-#define POSITION_6020_KD                        0.10f
+#define POSITION_6020_KP                        5.10f
+#define POSITION_6020_KI                        0.00156f
+#define POSITION_6020_KD                        0.0020f
 
 #define speed_3508_KP							3600.0f
 #define speed_3508_KI							0.0f

@@ -25,7 +25,7 @@
 
 #define RC_FRAME_LENGTH 18u
 
-#define USART_RX_BUF_LENGHT 32
+#define USART_RX_BUF_LENGHT 256
 
 #define RC_CH_VALUE_MIN         ((uint16_t)364)
 #define RC_CH_VALUE_OFFSET      ((uint16_t)1024)

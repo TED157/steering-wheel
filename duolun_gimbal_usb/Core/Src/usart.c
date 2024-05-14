@@ -107,7 +107,7 @@ void MX_USART6_UART_Init(void)
   huart6.Init.BaudRate = 115200;
   huart6.Init.WordLength = UART_WORDLENGTH_8B;
 #if REMOTE_UART6==1
-  huart6.Init.StopBits = UART_STOPBITS_2;
+  huart6.Init.StopBits = UART_STOPBITS_1;
 #else
   huart6.Init.StopBits = UART_STOPBITS_1;
 #endif

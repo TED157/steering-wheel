@@ -3,7 +3,7 @@
 <title>Static Call Graph - [balance_infantry\balance_infantry.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image balance_infantry\balance_infantry.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 6190004: Last Updated: Fri May 10 21:29:27 2024
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 6190004: Last Updated: Tue May 14 15:50:23 2024
 <BR><P>
 <H3>Maximum Stack Usage =       2996 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -668,12 +668,12 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[12a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TimerTaskLoop100Hz
 </UL>
 
-<P><STRONG><a name="[8d]"></a>CMS__</STRONG> (Thumb, 234 bytes, Stack size 0 bytes, calculatethread.o(.text.CMS__))
+<P><STRONG><a name="[8d]"></a>CMS__</STRONG> (Thumb, 494 bytes, Stack size 0 bytes, calculatethread.o(.text.CMS__))
 <BR><BR>[Called By]<UL><LI><a href="#[65]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CalculateThread
 </UL>
 
 <P><STRONG><a name="[65]"></a>CalculateThread</STRONG> (Thumb, 208 bytes, Stack size 40 bytes, calculatethread.o(.text.CalculateThread))
-<BR><BR>[Stack]<UL><LI>Max Depth = 984<LI>Call Chain = CalculateThread &rArr; ChassisCommandUpdate &rArr; __hardfp_sin &rArr; __ieee754_rem_pio2 &rArr; __aeabi_drsub &rArr; __aeabi_dadd &rArr; _double_epilogue &rArr; _double_round
+<BR><BR>[Stack]<UL><LI>Max Depth = 1000<LI>Call Chain = CalculateThread &rArr; ChassisCommandUpdate &rArr; __hardfp_sin &rArr; __ieee754_rem_pio2 &rArr; __aeabi_drsub &rArr; __aeabi_dadd &rArr; _double_epilogue &rArr; _double_round
 </UL>
 <BR>[Calls]<UL><LI><a href="#[8f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osDelay
 <LI><a href="#[8e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Chassis_Control
@@ -715,8 +715,8 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[67]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;UI
 </UL>
 
-<P><STRONG><a name="[8b]"></a>ChassisCommandUpdate</STRONG> (Thumb, 5904 bytes, Stack size 704 bytes, calculatethread.o(.text.ChassisCommandUpdate))
-<BR><BR>[Stack]<UL><LI>Max Depth = 944<LI>Call Chain = ChassisCommandUpdate &rArr; __hardfp_sin &rArr; __ieee754_rem_pio2 &rArr; __aeabi_drsub &rArr; __aeabi_dadd &rArr; _double_epilogue &rArr; _double_round
+<P><STRONG><a name="[8b]"></a>ChassisCommandUpdate</STRONG> (Thumb, 6108 bytes, Stack size 720 bytes, calculatethread.o(.text.ChassisCommandUpdate))
+<BR><BR>[Stack]<UL><LI>Max Depth = 960<LI>Call Chain = ChassisCommandUpdate &rArr; __hardfp_sin &rArr; __ieee754_rem_pio2 &rArr; __aeabi_drsub &rArr; __aeabi_dadd &rArr; _double_epilogue &rArr; _double_round
 </UL>
 <BR>[Calls]<UL><LI><a href="#[a1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__hardfp_sqrtf
 <LI><a href="#[9a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__hardfp_sin
@@ -1016,7 +1016,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[81]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_CAN_IRQHandler
 </UL>
 
-<P><STRONG><a name="[b7]"></a>HAL_CAN_RxFifo0MsgPendingCallback</STRONG> (Thumb, 868 bytes, Stack size 32 bytes, interruptservice.o(.text.HAL_CAN_RxFifo0MsgPendingCallback))
+<P><STRONG><a name="[b7]"></a>HAL_CAN_RxFifo0MsgPendingCallback</STRONG> (Thumb, 904 bytes, Stack size 32 bytes, interruptservice.o(.text.HAL_CAN_RxFifo0MsgPendingCallback))
 <BR><BR>[Stack]<UL><LI>Max Depth = 80<LI>Call Chain = HAL_CAN_RxFifo0MsgPendingCallback &rArr; MotorProcess
 </UL>
 <BR>[Calls]<UL><LI><a href="#[c3]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_CAN_GetRxMessage
@@ -1973,7 +1973,7 @@ Global Symbols
 <BR><BR>[Called By]<UL><LI><a href="#[28]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;TIM4_IRQHandler
 </UL>
 
-<P><STRONG><a name="[67]"></a>UI</STRONG> (Thumb, 10376 bytes, Stack size 2600 bytes, uithread.o(.text.UI))
+<P><STRONG><a name="[67]"></a>UI</STRONG> (Thumb, 10486 bytes, Stack size 2600 bytes, uithread.o(.text.UI))
 <BR><BR>[Stack]<UL><LI>Max Depth = 2996<LI>Call Chain = UI &rArr; Char_ReFresh &rArr; UImessage_add &rArr; osDelay &rArr; vTaskDelay &rArr; xTaskResumeAll &rArr; xTaskIncrementTick &rArr; vListInsertEnd
 </UL>
 <BR>[Calls]<UL><LI><a href="#[8f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;osDelay
@@ -2042,7 +2042,7 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[5b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[8c]"></a>chassis_powerloop</STRONG> (Thumb, 2104 bytes, Stack size 264 bytes, calculatethread.o(.text.chassis_powerloop))
+<P><STRONG><a name="[8c]"></a>chassis_powerloop</STRONG> (Thumb, 2092 bytes, Stack size 264 bytes, calculatethread.o(.text.chassis_powerloop))
 <BR><BR>[Stack]<UL><LI>Max Depth = 352<LI>Call Chain = chassis_powerloop &rArr; __aeabi_dadd &rArr; _double_epilogue &rArr; _double_round
 </UL>
 <BR>[Calls]<UL><LI><a href="#[7b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_d2f

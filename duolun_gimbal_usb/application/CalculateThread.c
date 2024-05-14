@@ -61,7 +61,7 @@ void ShootSpeedAdopt(void);
 //int dafu_flag = 0;
 
 
-bool_t single_shoot_flag=0;//单发开关
+bool_t single_shoot_flag=1;//单发开关
 bool_t auto_fire_flag=1;//自动开火开关
 bool_t switch_flag=0;//打符切换开关
 uint8_t No_noforce_flag=1;
@@ -120,8 +120,8 @@ void CalculateThread(void const * pvParameters)
         ChassisCommandUpdate();//底盘指令转换
         RotorCommandUpdate();//拨盘控制转换
 		if(ammo_speed_ad_flag==2){
-			//ShootSpeedAdopt();
-			//ammo_speed_ad_flag=0;
+			ShootSpeedAdopt();
+			ammo_speed_ad_flag=0;
 			}//摩擦轮速度调整
         AmmoCommandUpdate();//发射部分控制转化
 		
@@ -302,10 +302,7 @@ void GimbalControlModeUpdate(void)
         // 如果按下鼠标右键or s[1]=1并且视觉发现目标，进入自瞄控制
         if(((Remote.mouse.press_r==PRESS)||(Remote.rc.s[1]==RC_SW_UP))&&(Offline.AimbotDataNode == DEVICE_ONLINE)&&(Aimbot.AimbotState&AIMBOT_TARGET_INSIDE_OFFSET))
 				{
-            if(single_shoot_flag)
-								Gimbal.ControlMode = GM_AIMBOT_RUNES;
-						else
-								Gimbal.ControlMode = GM_AIMBOT_OPERATE;
+					Gimbal.ControlMode = GM_AIMBOT_OPERATE;
 				}
         else
             Gimbal.ControlMode = GM_MANUAL_OPERATE;//手动状态
@@ -345,6 +342,9 @@ void GimbalFireModeUpdate(void)
 		small_rune_flag = 0;
 		 big_rune_flag=0;
 	}
+	if(big_rune_flag){
+		DMA_printf("%d\n",big_rune_flag);
+	}
 	  if( (big_rune_flag|| small_rune_flag)&&(Gimbal.StateMachine==GM_MATCH||Gimbal.StateMachine==GM_TEST)){
 		  single_shoot_flag = 1;
 		  Gimbal.ControlMode = GM_AIMBOT_RUNES;
@@ -381,7 +381,7 @@ void GimbalFireModeUpdate(void)
 								||((Gimbal.ControlMode==GM_MANUAL_OPERATE&&Remote.mouse.press_r!=PRESS)||auto_fire_flag==0))//手动开火
 									&&((count*10<=Referee.Ammo0Limit.Cooling+onelastheat&&dealta_heat>10)||Referee.Ammo0Limit.Heat==0xFFFF)	)//且热量闭环允许 
 						{	
-							//DMA_printf("%d\n",GetSystemTimer());
+//							DMA_printf("%d\n",GetSystemTimer());
 							rune_shoot_flag=0;
 							Gimbal.FireMode=GM_FIRE_BUSY;									
 								gimbal_fire_countdown=ROTOR_TIMESET_BUSY;
@@ -393,12 +393,12 @@ void GimbalFireModeUpdate(void)
 				if(Gimbal.FireMode==GM_FIRE_BUSY&&gimbal_fire_countdown<=0)
 				{
 						if(single_shoot_flag==1||Offline.RefereeAmmoLimitNode0==1)
-								gimbal_fire_countdown=450;//time interval
+								gimbal_fire_countdown=400;//time interval
 						else 
 								gimbal_fire_countdown=(int)(10000.0/(dealta_heat/1.4+Referee.Ammo0Limit.Cooling/1.8+5)-45);
 						Gimbal.FireMode=GM_FIRE_COOLING; //no shoot
 				}
-				if(Gimbal.FireMode==GM_FIRE_COOLING && gimbal_fire_countdown>0  && gimbal_fire_countdown<280 && rune_shoot_flag<1 && Gimbal.ControlMode==GM_AIMBOT_RUNES)
+				if(Gimbal.FireMode==GM_FIRE_COOLING && gimbal_fire_countdown>0  && gimbal_fire_countdown<0 && rune_shoot_flag<1 && Gimbal.ControlMode==GM_AIMBOT_RUNES)
 				{	gimbal_fire_countdown=57;
 					Gimbal.FireMode=GM_FIRE_BUSY;
 					rune_shoot_flag++;
@@ -617,7 +617,7 @@ void GimbalCommandUpdate(void)
         Gimbal.Command.Pitch += GIMBAL_CMD_PITCH_KEYMAP;
         Gimbal.Command.Yaw = loop_fp32_constrain(Gimbal.Command.Yaw, Gimbal.Imu.YawAngle - 180.0f, Gimbal.Imu.YawAngle + 180.0f);
         Gimbal.Command.Pitch = fp32_constrain(Gimbal.Command.Pitch, PITCH_MIN_ANGLE, PITCH_MAX_ANGLE);
-        Gimbal.Output.Yaw = cascade_PID_calc(&Gimbal.Pid.Yaw, Gimbal.Imu.YawAngle-Gimbal.MotorMeasure.GimbalMotor.YawMotorSpeed*0.0102 , Gimbal.Imu.YawSpeed, Gimbal.Command.Yaw);
+        Gimbal.Output.Yaw = cascade_PID_calc(&Gimbal.Pid.Yaw, Gimbal.Imu.YawAngle-Gimbal.MotorMeasure.GimbalMotor.YawMotorSpeed*0.0032 , Gimbal.Imu.YawSpeed, Gimbal.Command.Yaw);
         Gimbal.Output.Pitch = cascade_PID_calc(&Gimbal.Pid.Pitch, Gimbal.Imu.PitchAngle, Gimbal.Imu.PitchSpeed, Gimbal.Command.Pitch);
 //		if(Gimbal.StateMachine ==GM_MATCH) {
 //			Gimbal.Output.Pitch = cascade_PID_calc(&Gimbal.Pid.Pitch, pitch_kf.x, Gimbal.Imu.PitchSpeed, Gimbal.Command.Pitch);
@@ -973,28 +973,29 @@ fp32 speed_high_flg;
 float shoot_adot=0;
 char speed_dec_flag = 0;
 char speed_add_flag = 0;
-char low_speed_time_num = 0;	
+char low_speed_time_num = 0;
+uint8_t shoot_ad_stop_flag=0;
 void ShootSpeedAdopt(void)
 {
 	shoot_speed_now=Referee.Ammo0Speed;
 	if(shoot_speed_last!=shoot_speed_now)
 	{
 		//如果弹速低于26.5m/s
-		if(shoot_speed_now < (shoot_limit - 3.5f) && shoot_speed_now >= (shoot_limit - 7.0f))
+		if(shoot_speed_now < (shoot_limit - 3.5f) && shoot_speed_now >= (shoot_limit - 7.0f) && shoot_ad_stop_flag==0)
 		{
 			low_speed_time_num++;
 		}
 		/*超速判断*/ 		/*低速判断*/
-		if(((shoot_limit - 2.5f) <= shoot_speed_now ) ||low_speed_time_num == 3 )
+		if(((shoot_limit - 2.0f) <= shoot_speed_now ) ||low_speed_time_num == 3 )
 		{	
-			if((shoot_limit - 2.5)<shoot_speed_now)
+			if((shoot_limit - 2.0)<shoot_speed_now)
 				{speed_high_flg = (shoot_limit - 2.5 - shoot_speed_now) * 90;}
-			else if((shoot_limit - 2.5)>shoot_speed_now)
+			else if((shoot_limit - 2.0)>shoot_speed_now)
 				{speed_high_flg = (shoot_limit - 2.5 - shoot_speed_now) * 30;}
 			low_speed_time_num = 0;		
 		}
-		/*判断弹速是否在26.5到27.5之间*/
-		if(shoot_speed_now >= (shoot_limit - 2.5f))
+		/*判断弹速是否在26.5到28.0之间*/
+		if(shoot_speed_now >= (shoot_limit - 2.0f))
 		{
 			speed_dec_flag ++;
 		    speed_add_flag = 0;
@@ -1004,6 +1005,11 @@ void ShootSpeedAdopt(void)
 			speed_dec_flag = 0;
 			speed_add_flag++;
 		}
+		else{
+			shoot_ad_stop_flag=1;
+		}
+		if(shoot_ad_stop_flag)
+			speed_add_flag=0;
 		//两次采样均不在区间内
 		if(speed_dec_flag == 3)
 		{

@@ -12,7 +12,6 @@ typedef enum
 	HIGHSPEED
 }ChassisMode_e;
 
-
 typedef struct
 {
 	motor_measure_t Motor6020[4];

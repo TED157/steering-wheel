@@ -149,6 +149,11 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 				memcpy(&Aim,rx_data,sizeof(Aim_t));
 				break;
 			}
+			case AIMBOT_POSITION_ID:
+			{
+				memcpy(coords,rx_data,sizeof(coords));
+				break;
+			}
 			case DefaulPTZRequestAndStatusId:
 			{
 				OfflineCounter.PTZnode = 0;

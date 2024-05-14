@@ -25,7 +25,7 @@
 
 #include "QuaternionEKF.h"
 #define IMU_temp_PWM(pwm)  imu_pwm_set(pwm)                    //pwm给定
-float bias=-0.000600000028f;//0.04375f;
+float bias=0.000279700021f;//0.04375f;
 
 /**
   * @brief          control the temperature of bmi088
@@ -134,7 +134,7 @@ void AttitudeThread(void const *pvParameters)
     SPI1_DMA_init((uint32_t)gyro_dma_tx_buf, (uint32_t)gyro_dma_rx_buf, SPI_DMA_GYRO_LENGHT);
 
     imu_start_dma_flag = 1;//必须要初始化DMA之后才能去使能DMA，否则会出现只进一次DMA中断情况，此处留意
-	IMU_QuaternionEKF_Init(1,0.0001,79000000,0.9996,0.0089);
+	IMU_QuaternionEKF_Init(1,0.00013,7800000,0.9996,0.0089);
     while (1)
     {
         AHRS_update(INS_quat, 0.001f, bmi088_real_data.gyro, bmi088_real_data.accel);

@@ -3,15 +3,21 @@
 
 #include "struct_typedef.h"
 
+typedef enum
+{
+	NORMAL,
+	HIGH_SPEED,
+	FLY
+}CMS_Mode_e;
+
+
 typedef struct
 {
 
     float cms_cap_v;   		//电容两端电压Ucr
     float cms_cap_p;     	//电容充power
 	uint16_t cms_status;    //电容状态
-	uint8_t TxOpen;
-	uint8_t Mode;  //1使用电容
-	int16_t charge_limit;
+	CMS_Mode_e Mode;  //1使用电容
 	uint8_t charge_flag;
     /*
 			bit0	电容过压
