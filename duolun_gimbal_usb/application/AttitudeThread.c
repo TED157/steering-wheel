@@ -25,7 +25,7 @@
 
 #include "QuaternionEKF.h"
 #define IMU_temp_PWM(pwm)  imu_pwm_set(pwm)                    //pwm¸ø¶¨
-float bias=0.000279700021f;//0.04375f;
+float bias=-0.000452703995f;//0.04375f;
 
 /**
   * @brief          control the temperature of bmi088

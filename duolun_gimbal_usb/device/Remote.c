@@ -177,14 +177,14 @@ void sbus_to_rc(uint8_t DmaBufNmb)
     rc_ctrl.rc.ch[3] = ((sbus_rx_buf[DmaBufNmb][4] >> 1) | (sbus_rx_buf[DmaBufNmb][5] << 7)) & 0x07ff;  //!< Channel 3
     rc_ctrl.rc.s[0] = ((sbus_rx_buf[DmaBufNmb][5] >> 4) & 0x0003);                                      //!< Switch left
     rc_ctrl.rc.s[1] = ((sbus_rx_buf[DmaBufNmb][5] >> 4) & 0x000C) >> 2;                                 //!< Switch right
-    if(OfflineMonitor.Ft_Remote){
+    
 	rc_ctrl.mouse.y = -(sbus_rx_buf[DmaBufNmb][6] | (sbus_rx_buf[DmaBufNmb][7] << 8));                     //!< Mouse X axis
     rc_ctrl.mouse.x = -(sbus_rx_buf[DmaBufNmb][8] | (sbus_rx_buf[DmaBufNmb][9] << 8));                     //!< Mouse Y axis
     rc_ctrl.mouse.z = sbus_rx_buf[DmaBufNmb][10] | (sbus_rx_buf[DmaBufNmb][11] << 8);                   //!< Mouse Z axis
     rc_ctrl.mouse.press_l = sbus_rx_buf[DmaBufNmb][12];                                                 //!< Mouse Left Is Press ?
     rc_ctrl.mouse.press_r = sbus_rx_buf[DmaBufNmb][13];                                                 //!< Mouse Right Is Press ?
     rc_ctrl.key.v = sbus_rx_buf[DmaBufNmb][14] | (sbus_rx_buf[DmaBufNmb][15] << 8);                     //!< KeyBoard value
-    }
+    
 	rc_ctrl.rc.ch[4] = sbus_rx_buf[DmaBufNmb][16] | (sbus_rx_buf[DmaBufNmb][17] << 8);                  //NULL
 
     rc_ctrl.rc.ch[0] -= RC_CH_VALUE_OFFSET;
@@ -205,7 +205,7 @@ void FigureTransmission_to_rc(uint8_t DmaBufNmb)
 	memcpy(frame_head,&ft_rc.frame_head,5);
 	if(ft_rc.frame_head.SOF==0xA5 && verify_CRC8_check_sum(frame_head,5))
 	{
-		if(ft_rc.cmd_id==0x304 && verify_CRC16_check_sum(usart6_buf[DmaBufNmb],21))
+		if(ft_rc.cmd_id==0x304 && verify_CRC16_check_sum(usart6_buf[DmaBufNmb],21) && OfflineMonitor.Remote)
 		{
 			Ft_RemoteoOfflineStateNodeOffline();
 			KeyFormerChannal = rc_ctrl.key.v;

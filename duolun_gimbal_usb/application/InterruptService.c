@@ -63,6 +63,9 @@ extern TIM_HandleTypeDef htim7;
 extern TIM_HandleTypeDef htim5;
 extern easy_kalman_t pitch_kf;
 
+OfflineCounter_t OfflineCounter;
+OfflineMonitor_t OfflineMonitor;
+
 RefereeChassisPowerShootHeat_t RefereeChassisPowerShootHeat;
 
 
@@ -318,7 +321,11 @@ void USART6_IRQHandler(void)
 
     if(USART6->SR & UART_FLAG_IDLE)
     {
-        __HAL_UART_CLEAR_IDLEFLAG(&huart6);
+        if(OfflineMonitor.Ft_Remote && !OfflineMonitor.Remote)
+		{
+			usart6_rx_dma_restart(USART_RX_BUF_LENGHT);
+		}
+		__HAL_UART_CLEAR_IDLEFLAG(&huart6);
 		if(USART6->SR & UART_FLAG_TC)
 			__HAL_UART_CLEAR_FLAG(&huart6, UART_FLAG_TC);
         static uint16_t this_time_rx_len = 0;
@@ -490,6 +497,7 @@ void TimerTaskLoop100Hz_1(void)
 	//usart1_tx_dma_enable((uint8_t*)"1\n",2);
 	
 		//DMA_printf("%f,%f\n",Gimbal.MotorMeasure.ShootMotor.AmmoRightMotorSpeed,Gimbal.MotorMeasure.ShootMotor.AmmoLeftMotorSpeed/*,pitch_kf.x*/);
+	
 }
 
 
@@ -576,8 +584,7 @@ void GimbalImuSend(void)
 
 
 
-OfflineCounter_t OfflineCounter;
-OfflineMonitor_t OfflineMonitor;
+
 void CommuniteOfflineCounterUpdate(void)
 {
     OfflineCounter.PitchMotor++;

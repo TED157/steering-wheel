@@ -57,11 +57,10 @@
 Graph_Data imagex,imagey,x1,x6,x7,x8,x9,x10,x11,x12,x13,x14;
 Graph_Data circle1,circle2,circle3,circle4;
 Graph_Data Pingheng;
-String_Data Ammo,Heat,aimbot,autofire,Mode,close1,open1,open2,close2,open3,close3,open4,close4,open5,close5,roting,noforce,fallow,stop;
+String_Data Ammo,aimbot,autofire,Mode,open2,open3,open4,open5,noforce;
 String_Data capcity;
 String_Data rune;
 Float_Data CapData;
-Graph_Data Cap_TX;
 Graph_Data Coords;
 int mode_flag=0;
 uint8_t count=0,count2=0;
@@ -70,7 +69,7 @@ extern EulerSystemMeasure_t    Imu;
 extern DMA_HandleTypeDef hdma_usart6_tx;
 extern int16_t coords[2];
 ChassisMode_e mode=NOFORCE;
-uint8_t fire_mode,shoot_mode,cover_mode,aim_mode,match_mode;
+uint8_t fire_mode,shoot_mode,aim_mode,match_mode;
 uint8_t coords_flag=0;
 uint8_t mode_change_flag;//bit 0-7 底盘模式,自动开火，单双发，弹舱盖开合，打击对象
 void UISendTask(void const * argument)
@@ -102,12 +101,11 @@ void UI(void const * argument)
 	mode=NOFORCE;
 	fire_mode=0x00;
 	shoot_mode=0x00;
-	cover_mode=0x00;
 	match_mode=0x00;
 	aim_mode=(PTZ.AimTargetRequest&0x31);
 	//固定UI图层
 	//模式切换
-	Char_Draw(&Mode,"mod",UI_Graph_ADD,0,UI_Color_Green,18,28,2,78,782,"MODE\nFIRE\nSINGLE\nCOVER\nAMMO");
+	Char_Draw(&Mode,"mod",UI_Graph_ADD,0,UI_Color_Green,18,21,2,78,782,"MODE\nFIRE\nSINGLE\nAMMO");
 	Char_ReFresh(Mode);	
 	usart6_tx_dma_enable(UIsend_buffer+head[num-1],head[num]-head[num-1]);
 	num--;top=head[num];
@@ -144,23 +142,7 @@ void UI(void const * argument)
 	usart6_tx_dma_enable(UIsend_buffer+head[num-1],head[num]-head[num-1]);
 	num--;top=head[num];	
 	osDelay(100);
-	if( (PTZ.PTZStatusInformation   & 16 ) == 16)
-	{
-		Char_Draw(&open1,"op",UI_Graph_ADD,1,UI_Color_White,16,7,2,225,702,"open  ");
-		Char_ReFresh(open1);
-		usart6_tx_dma_enable(UIsend_buffer+head[num-1],head[num]-head[num-1]);
-		num--;top=head[num];	
-		osDelay(100);
-	}
-	else
-	{
-		Char_Draw(&open1,"op",UI_Graph_ADD,1,UI_Color_White,16,7,2,225,702,"close ");
-		Char_ReFresh(open1);
-		usart6_tx_dma_enable(UIsend_buffer+head[num-1],head[num]-head[num-1]);
-		num--;top=head[num];	
-		osDelay(100);		
-	}
-	Char_Draw(&rune,"run",UI_Graph_ADD,1,UI_Color_White,16,7,2,225,672,"NORMAL");
+	Char_Draw(&rune,"run",UI_Graph_ADD,1,UI_Color_White,16,7,2,225,702,"NORMAL");
 	Char_ReFresh(rune);
 	usart6_tx_dma_enable(UIsend_buffer+head[num-1],head[num]-head[num-1]);
 	num--;top=head[num];	
@@ -169,7 +151,7 @@ void UI(void const * argument)
     {
 		if(Chassis.Mode==FALLOW&&mode==NOFORCE){
 			//模式切换
-			Char_Draw(&Mode,"mod",UI_Graph_ADD,0,UI_Color_Green,18,28,2,78,782,"MODE\nFIRE\nSINGLE\nCOVER\nAMMO");
+			Char_Draw(&Mode,"mod",UI_Graph_ADD,0,UI_Color_Green,18,21,2,78,782,"MODE\nFIRE\nSINGLE\nAMMO");
 			Char_ReFresh(Mode);	
 			usart6_tx_dma_enable(UIsend_buffer+head[num-1],head[num]-head[num-1]);
 			num--;top=head[num];
@@ -220,33 +202,20 @@ void UI(void const * argument)
 			}
 			usart6_tx_dma_enable(UIsend_buffer+head[num-1],head[num]-head[num-1]);
 			num--;top=head[num];	
-			osDelay(100);
-			if( (PTZ.PTZStatusInformation   & 16 ) == 16)
-			{
-				Char_Draw(&open1,"op",UI_Graph_ADD,1,UI_Color_Purplish_red,16,7,2,225,702,"open  ");
-				Char_ReFresh(open1);
-			}
-			else
-			{
-				Char_Draw(&open1,"op",UI_Graph_ADD,1,UI_Color_White,16,7,2,225,702,"close ");
-				Char_ReFresh(open1);		
-			}
-			usart6_tx_dma_enable(UIsend_buffer+head[num-1],head[num]-head[num-1]);
-			num--;top=head[num];	
 			osDelay(100);		
 			if(PTZ.AimTargetRequest & 0x20)
 			{
-				Char_Draw(&rune,"run",UI_Graph_ADD,1,UI_Color_Pink,16,7,2,225,672,"BIG    ");
+				Char_Draw(&rune,"run",UI_Graph_ADD,1,UI_Color_Pink,16,7,2,225,702,"BIG    ");
 				Char_ReFresh(rune);
 			}
 			else if(PTZ.AimTargetRequest & 0x10)
 			{
-				Char_Draw(&rune,"run",UI_Graph_ADD,1,UI_Color_Cyan,16,7,2,225,672,"SMALL  ");
+				Char_Draw(&rune,"run",UI_Graph_ADD,1,UI_Color_Cyan,16,7,2,225,702,"SMALL  ");
 				Char_ReFresh(rune);
 			}
 			else 
 			{
-				Char_Draw(&rune,"run",UI_Graph_ADD,1,UI_Color_White,16,7,2,225,672,"NORMAL");
+				Char_Draw(&rune,"run",UI_Graph_ADD,1,UI_Color_White,16,7,2,225,702,"NORMAL");
 				Char_ReFresh(rune);	
 			}
 			usart6_tx_dma_enable(UIsend_buffer+head[num-1],head[num]-head[num-1]);
@@ -255,8 +224,7 @@ void UI(void const * argument)
 			mode=NOFORCE;
 			fire_mode=(PTZ.PTZStatusInformation&64);
 			shoot_mode=(PTZ.AimTargetRequest&0x02);
-			cover_mode=(PTZ.PTZStatusInformation&16);
-			aim_mode=(PTZ.PTZStatusInformation&16);
+			aim_mode=(PTZ.AimTargetRequest&0x31);
 			match_mode=0x00;
 		}
 
@@ -306,10 +274,6 @@ void UI(void const * argument)
 		if(shoot_mode!=(PTZ.AimTargetRequest&0x02)){
 			mode_change_flag |= (uint8_t) (1<<2);
 		}
-		//弹舱盖开合
-		if(cover_mode!=(PTZ.PTZStatusInformation&16)){
-			mode_change_flag |= (uint8_t) (1<<3);
-		}
 		//打击对象切换
 		if(aim_mode!=(PTZ.AimTargetRequest&0x31)){
 			mode_change_flag |= (uint8_t) (1<<4);
@@ -322,7 +286,6 @@ void UI(void const * argument)
 		mode=Chassis.Mode;
 		fire_mode=(PTZ.PTZStatusInformation&64);
 		shoot_mode=(PTZ.AimTargetRequest&0x02);
-		cover_mode=(PTZ.PTZStatusInformation&16);
 		aim_mode=(PTZ.AimTargetRequest&0x31);																																																					
 		//************************************底盘模式**********************************
 		if(mode_change_flag&0x01){
@@ -372,34 +335,21 @@ void UI(void const * argument)
 				Char_ReFresh(open3);	
 			}	
 		}
-		//************************************弹舱盖**********************************	
-		if(mode_change_flag&0x08){
-			if( (PTZ.PTZStatusInformation   & 16 ) == 16)
-			{
-				Char_Draw(&open1,"op",UI_Graph_Change,1,UI_Color_Purplish_red,16,7,2,225,702,"open  ");
-				Char_ReFresh(open1);
-			}
-			else
-			{
-				Char_Draw(&open1,"op",UI_Graph_Change,1,UI_Color_White,16,7,2,225,702,"close ");
-				Char_ReFresh(open1);		
-			}
-		} 
 		/************************rune*******************************/
 		if(mode_change_flag&0x10){
 			if(PTZ.AimTargetRequest & 0x20)
 			{
-				Char_Draw(&rune,"run",UI_Graph_Change,1,UI_Color_Pink,16,7,2,225,672,"BIG    ");
+				Char_Draw(&rune,"run",UI_Graph_Change,1,UI_Color_Pink,16,7,2,225,702,"BIG    ");
 				Char_ReFresh(rune);
 			}
 			else if(PTZ.AimTargetRequest & 0x10)
 			{
-				Char_Draw(&rune,"run",UI_Graph_Change,1,UI_Color_Cyan,16,7,2,225,672,"SMALL  ");
+				Char_Draw(&rune,"run",UI_Graph_Change,1,UI_Color_Cyan,16,7,2,225,702,"SMALL  ");
 				Char_ReFresh(rune);
 			}
 			else 
 			{
-				Char_Draw(&rune,"run",UI_Graph_Change,1,UI_Color_White,16,7,2,225,672,"NORMAL");
+				Char_Draw(&rune,"run",UI_Graph_Change,1,UI_Color_White,16,7,2,225,702,"NORMAL");
 				Char_ReFresh(rune);	
 			}
 		}

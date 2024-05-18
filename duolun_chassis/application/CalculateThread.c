@@ -26,9 +26,8 @@ ext_game_robot_status_t Referee;
 extern ext_power_heat_data_t power_heat_data_t;
 uint32_t F_Motor[8];
 float WheelAngle[4];
-
 fp32 wz;
-fp32 Angle_zero_6020[4] = {103.569763, -136.049316, 98.1638184, 3.70295715};
+fp32 Angle_zero_6020[4] = {38.044800, -138.538033, -84.401787, 129.187507};
 //fp32 Angle_zero_6020[4] = {0, 0, 0, 0};
 fp32 Direction[5] = {-1.0, -1.0, 1.0, 1.0, -1.0};
 fp32 Maxspeed = 6000.0f;
@@ -85,8 +84,8 @@ fp32 left_front_6020_speed_PID[3] = {SPEED_6020_KP, SPEED_6020_KI, SPEED_6020_KD
 fp32 right_front_6020_speed_PID[3] = {SPEED_6020_KP, SPEED_6020_KI, SPEED_6020_KD};
 fp32 right_back_6020_speed_PID[3] = {SPEED_6020_KP, SPEED_6020_KI, SPEED_6020_KD};
 fp32 left_back_6020_speed_PID[3] = {SPEED_6020_KP, SPEED_6020_KI, SPEED_6020_KD};
-fp32 left_front_6020_position_PID[3] = {POSITION_6020_KP, POSITION_6020_KI, POSITION_6020_KD};
-fp32 right_front_6020_position_PID[3] = {POSITION_6020_KP, POSITION_6020_KI, POSITION_6020_KD};
+fp32 left_front_6020_position_PID[3] = {POSITION_6020_KP, POSITION_6020_KI, POSITION_6020_KD*0};
+fp32 right_front_6020_position_PID[3] = {POSITION_6020_KP, POSITION_6020_KI, POSITION_6020_KD*0};
 fp32 right_back_6020_position_PID[3] = {POSITION_6020_KP, POSITION_6020_KI, POSITION_6020_KD};
 fp32 left_back_6020_position_PID[3] = {POSITION_6020_KP, POSITION_6020_KI, POSITION_6020_KD};
 fp32 left_front_3508_PID[3] = {speed_3508_KP, speed_3508_KI, speed_3508_KD};
@@ -262,13 +261,12 @@ void ChassisCommandUpdate()
 		}
 		else if (Chassis.Mode == ROTING)
 		{
-			Chassis.wz = sin(v_gain/4.2)*2.2;
+			Chassis.wz = sin(v_gain*0.74)*1.45;
 			if((PTZ.ChassisStatueRequest&64)==64)
 			{
-				Chassis.wz = sin(v_gain/4.2)*3.5;
-				angle_minus = -YawMotorMeasure.angle + FollowAngle - YawMotorMeasure.speed_rpm * 0.58;
+				Chassis.wz = sin(v_gain*0.74)*2.05;
 			}
-			else angle_minus = -YawMotorMeasure.angle + FollowAngle - YawMotorMeasure.speed_rpm * 0.6;
+			angle_minus = -YawMotorMeasure.angle + FollowAngle - YawMotorMeasure.speed_rpm * 0.47;
 			Chassis.vx = ((PTZ.FBSpeed / 32767.0f) * cos(angle_minus/180.0*PI) - (PTZ.LRSpeed / 32767.0f) * sin(angle_minus/180.0*PI))*v_gain/1.8;//* (1.0f + Chassis.Power_Proportion /Power_Max );
 			Chassis.vy = ((PTZ.FBSpeed / 32767.0f) * sin(angle_minus/180.0*PI) + (PTZ.LRSpeed / 32767.0f) * cos(angle_minus/180.0*PI))*v_gain/1.8;//* (1.0f + Chassis.Power_Proportion /Power_Max );
 		}
@@ -358,8 +356,8 @@ void ChassisCommandUpdate()
 		}
 		else if(((CMS_Data.cms_status) & (uint16_t) 1) != 1 && CMS_Data.Mode == HIGH_SPEED &&Power_Max<=120)
 		{
-			Chassis.vx = Chassis.vx *1.24;
-			Chassis.vy = Chassis.vy *1.24;
+			Chassis.vx = Chassis.vx *1.2;
+			Chassis.vy = Chassis.vy *1.2;
 			Chassis.wz += 1.0 * Chassis.wz ;
 		}
 
@@ -536,7 +534,7 @@ void CMS__()
 	{
 		CMS_Data.Mode =FLY;
 	}
-	else if((!Chassis.CapKey) && CMS_Data.cms_cap_v > 12 && CMS_Data.charge_flag==2){
+	else if((!Chassis.CapKey) && CMS_Data.cms_cap_v > 12 && CMS_Data.charge_flag==2 && (PTZ.PTZStatusInformation&16)==16){
 		CMS_Data.Mode = HIGH_SPEED;
 	}
 	else{
@@ -638,12 +636,12 @@ uint8_t chassis_powerloop(Chassis_t *Chassis)
 		}
 		else if (power_heat_data_t.buffer_energy < 20 && power_heat_data_t.buffer_energy >= 10 && cms_flag==0)
 		{
-			Plimit = 0.1;
+			Plimit = 0.02;
 			//power_scale = (Power_Max-2) / lijupower;
 		}
 		else if (power_heat_data_t.buffer_energy < 10 && power_heat_data_t.buffer_energy >= 0)
 		{
-			Plimit = 0.05;
+			Plimit = 0.01;
 			//power_scale = (Power_Max-2) / lijupower;}
 		}
 		else

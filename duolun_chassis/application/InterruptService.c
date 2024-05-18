@@ -34,6 +34,7 @@ extern uint16_t init_time;
 extern fp32 left_slider_foot_current;
 extern fp32 right_slider_foot_current;
 extern uint8_t offline_flag;
+extern ext_game_robot_status_t Referee;
 
 CAN_RxHeaderTypeDef rx_header;
 uint8_t rx_data[8];
@@ -149,11 +150,11 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 				memcpy(&Aim,rx_data,sizeof(Aim_t));
 				break;
 			}
-			case AIMBOT_POSITION_ID:
-			{
-				memcpy(coords,rx_data,sizeof(coords));
-				break;
-			}
+//			case AIMBOT_POSITION_ID:
+//			{
+//				memcpy(coords,rx_data,sizeof(coords));
+//				break;
+//			}
 			case DefaulPTZRequestAndStatusId:
 			{
 				OfflineCounter.PTZnode = 0;
@@ -277,11 +278,18 @@ void TimerTaskLoop100Hz()
 {
 	CMS_BUFFER_SEND(power_heat_data_t.buffer_energy);
 	cms_send_period=0;
-	CMS_POWER_SEND(robot_state.chassis_power_limit,300,150,1);
+	if(Referee.power_management_chassis_output==0)
+	{
+		CMS_POWER_SEND(robot_state.chassis_power_limit,300,150,0);
+	}
+	else
+		CMS_POWER_SEND(robot_state.chassis_power_limit,300,150,0);
 	uint8_t message[2];
 	message[0]=robot_state.chassis_power_limit>>8;
 	message[0]=robot_state.chassis_power_limit;
-	DMA_printf("%f\r\n",Chassis.Motor3508[0].speed);
+	//DMA_printf("%f\r\n",Chassis.Motor3508[0].speed);
+	//DMA_printf("%d,%d,%d,%d,%f\r\n",Chassis.Motor3508[0].speed_rpm,Chassis.Motor3508[1].speed_rpm,Chassis.Motor3508[2].speed_rpm,Chassis.Motor3508[3].speed_rpm,power_heat_data_t.chassis_power);
+	//DMA_printf("%d,%d,%d,%d,%f\r\n",OfflineMonitor.Motor[4],OfflineMonitor.Motor[5],OfflineMonitor.Motor[6],OfflineMonitor.Motor[7],power_heat_data_t.chassis_power);
 }
 
 
