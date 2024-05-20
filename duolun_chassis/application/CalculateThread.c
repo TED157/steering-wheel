@@ -27,7 +27,7 @@ extern ext_power_heat_data_t power_heat_data_t;
 uint32_t F_Motor[8];
 float WheelAngle[4];
 fp32 wz;
-fp32 Angle_zero_6020[4] = {38.044800, -138.538033, -84.401787, 129.187507};
+fp32 Angle_zero_6020[4] = {97.092537, -15.6958889, -79.984741, 129.890739};
 //fp32 Angle_zero_6020[4] = {0, 0, 0, 0};
 fp32 Direction[5] = {-1.0, -1.0, 1.0, 1.0, -1.0};
 fp32 Maxspeed = 6000.0f;
@@ -621,7 +621,7 @@ uint8_t chassis_powerloop(Chassis_t *Chassis)
 		/*if (power_heat_data_t.buffer_energy < 40 && power_heat_data_t.buffer_energy >= 35)
 			
 		{
-			Plimit = 0.5;
+			Plimit = 0.95;
 		}
 		else */if (power_heat_data_t.buffer_energy < 35 && power_heat_data_t.buffer_energy >= 30)
 		{

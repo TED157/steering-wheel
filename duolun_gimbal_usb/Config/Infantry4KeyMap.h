@@ -38,7 +38,7 @@
 // 超级电容开关
 #define SUPER_CAP_SWITCH_KEYMAP         CheakKeyPress(KEY_PRESSED_OFFSET_C)  
 // 小陀螺
-#define CHASSIS_ROTATE_SWITCH_KEYMAP    CheakKeyPress(KEY_PRESSED_OFFSET_SHIFT)  || (RemoteDial() == -1.0f) ||+ CheakKeyPress(KEY_PRESSED_OFFSET_CTRL)
+#define CHASSIS_ROTATE_SWITCH_KEYMAP    CheakKeyPress(KEY_PRESSED_OFFSET_SHIFT)  /*|| (RemoteDial() == -1.0f)*/ ||+ CheakKeyPress(KEY_PRESSED_OFFSET_CTRL)
 
 
 //打开自动电容

@@ -278,12 +278,12 @@ void TimerTaskLoop100Hz()
 {
 	CMS_BUFFER_SEND(power_heat_data_t.buffer_energy);
 	cms_send_period=0;
-	if(Referee.power_management_chassis_output==0)
+	if(Referee.power_management_chassis_output==0 || power_heat_data_t.chassis_voltage<21000)
 	{
 		CMS_POWER_SEND(robot_state.chassis_power_limit,300,150,0);
 	}
 	else
-		CMS_POWER_SEND(robot_state.chassis_power_limit,300,150,0);
+		CMS_POWER_SEND(robot_state.chassis_power_limit,300,150,1);
 	uint8_t message[2];
 	message[0]=robot_state.chassis_power_limit>>8;
 	message[0]=robot_state.chassis_power_limit;

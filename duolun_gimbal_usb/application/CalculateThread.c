@@ -98,6 +98,7 @@ void CalculateThread(void const * pvParameters)
 //    LoopFifoFp32_init(&Gimbal.ImuBuffer.YawLoopPointer, Gimbal.ImuBuffer.YawAddress, 64);//自瞄数据fifo初始化
 //    LoopFifoFp32_init(&Gimbal.ImuBuffer.PitchLoopPointer, Gimbal.ImuBuffer.PitchAddress, 64);
     first_order_filter_init(&pitch_aimbot_filter, 1000, &pitch_aimbot_filter_param);//滤波器初始化
+	HAL_GPIO_WritePin(Laser_GPIO_Port, Laser_Pin, GPIO_PIN_RESET);
 	while(1)
     {
 		Remote = *get_remote_control_point();//更新遥控器数据
@@ -118,7 +119,7 @@ void CalculateThread(void const * pvParameters)
         GimbalCommandUpdate();//指令的转换
         ChassisCommandUpdate();//底盘指令转换
         RotorCommandUpdate();//拨盘控制转换
-		if(ammo_speed_ad_flag==2){
+		if(ammo_speed_ad_flag==1){
 			ShootSpeedAdopt();
 			ammo_speed_ad_flag=0;
 			}//摩擦轮速度调整
@@ -271,14 +272,14 @@ void ChassisStateMachineUpdate(void)
 		{
 		if(Remote.rc.s[1]==2)
 				{//左侧拨杆在最下面是底盘有力
-            if(CHASSIS_ROTATE_SWITCH_KEYMAP)//小陀螺模式
+            if(CHASSIS_ROTATE_SWITCH_KEYMAP || (RemoteDial() == -1.0f && Gimbal.StateMachine == GM_TEST))//小陀螺模式
                 Chassis.ChassisState=CHASSIS_ROTATE;
 						else 
 								if(CHASSIS_STOP_KEYMAP)
 										Chassis.ChassisState=CHASSIS_NO_MOVE;
 								else
 										Chassis.ChassisState=CHASSIS_FOLLOW;												
-            if(CHASSIS_HIGH_SPEED_KEYMAP)
+            if(CHASSIS_HIGH_SPEED_KEYMAP || (RemoteDial() == -1.0f && Gimbal.StateMachine == GM_MATCH))
                 Chassis.ChassisSpeed=CHASSIS_FAST_SPEED;
             else
                 Chassis.ChassisSpeed=CHASSIS_NORMAL_SPEED;
@@ -384,7 +385,7 @@ void GimbalFireModeUpdate(void)
 								||(Gimbal.ControlMode==GM_AIMBOT_OPERATE&&((Aimbot.AimbotState & 0x02) != 0)&&auto_fire_flag==1)//自动开火
 						        ||((Gimbal.ControlMode==GM_AIMBOT_OPERATE||Gimbal.ControlMode==GM_AIMBOT_RUNES)&&auto_fire_flag==0)//无自动开火
 								||((Gimbal.ControlMode==GM_MANUAL_OPERATE&&Remote.mouse.press_r!=PRESS)||auto_fire_flag==0))//手动开火
-									&&((count*10<=Referee.Ammo0Limit.Cooling+onelastheat&&dealta_heat>10)||Referee.Ammo0Limit.Heat==0xFFFF)	)//且热量闭环允许 
+									&&((count*10<=Referee.Ammo0Limit.Cooling+onelastheat&&dealta_heat>15)||Referee.Ammo0Limit.Heat==0xFFFF)	)//且热量闭环允许 
 						{	
 //							DMA_printf("%d\n",GetSystemTimer());
 							rune_shoot_flag=0;
@@ -855,10 +856,10 @@ void GetGimbalRequestState(GimbalRequestState_t *RequestState)
             RequestState->ChassisStateRequest |= (uint8_t)(1 << 4);
         }
        
-				if(CHASSIS_HIGH_SPEED_KEYMAP){
+				if(Chassis.ChassisSpeed == CHASSIS_FAST_SPEED){
 					RequestState->ChassisStateRequest |= (uint8_t)(1<<5);
 				}
-				if(CHASSIS_STOP_KEYMAP){
+				if(Chassis.ChassisState == CHASSIS_NO_MOVE){
 					RequestState->ChassisStateRequest |= (uint8_t)(1<<2);
 				}
 				if(CHASSIS_HIGH_SPEED_ROTATE){
@@ -998,7 +999,7 @@ void ShootSpeedAdopt(void)
 			speed_dec_flag = 0;
 			speed_add_flag++;
 		}
-		else{
+		if(shoot_speed_now >= (shoot_limit - 2.8f)){
 			shoot_ad_stop_flag=1;
 		}
 		if(shoot_ad_stop_flag)
@@ -1035,8 +1036,8 @@ void ShootSpeedAdopt(void)
 	ammo_speed_r = ammo_speed_r - shoot_adot * 10;
 	}
 	if(shoot_adot>2) shoot_adot=0;
-	if(ammo_speed_l<7000) ammo_speed_l=7000;
-	else if(ammo_speed_l>7800) ammo_speed_l=7800;
-	if(ammo_speed_r<7000) ammo_speed_r=7000;
-	else if(ammo_speed_l>7800) ammo_speed_l=7800;
+	if(ammo_speed_l<6850) ammo_speed_l=6850;
+	else if(ammo_speed_l>7400) ammo_speed_l=7400;
+	if(ammo_speed_r<6850) ammo_speed_r=6850;
+	else if(ammo_speed_l>7400) ammo_speed_l=7400;
 }
